@@ -1,0 +1,12 @@
+flutter_only:
+  container:
+    image: cirrusci/flutter:stable
+  env:
+    TEKARTIK_CI_CIRRUS: true
+  setup_script:
+    - cd ci_support
+    - pub get
+    - dart tool/cirrus_ci_setup.dart
+  matrix:
+    - name: test
+      script: dart tool/cirrus_ci_test.dart
