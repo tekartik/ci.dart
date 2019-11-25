@@ -10,14 +10,16 @@ import 'package:pub_semver/pub_semver.dart';
 Future setup() async {
   if (shellEnvironment.containsKey('TEKARTIK_CI_CIRRUS')) {
     print('Cirrus flutter setup');
+    /*
     await run('''
     flutter channel stable
     flutter upgrade
     ''');
-  } else {
-    print(
-        'Use existing flutter installation ${await getFlutterVersion()} in ${await which('flutter')}');
+
+     */
   }
+  print(
+      'Use existing flutter installation ${await getFlutterVersion()} in ${await which('flutter')}');
 }
 
 String _fixDirName(String dirName) => normalize(absolute(dirName));

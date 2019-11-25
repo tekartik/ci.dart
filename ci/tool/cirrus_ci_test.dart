@@ -4,8 +4,6 @@ Future main() async {
   var shell = Shell();
 
   await shell.run('''
-flutter format --set-exit-if-changed .
-flutter analyze --no-current-package .
-flutter test
+pub run test
 ''');
 }
