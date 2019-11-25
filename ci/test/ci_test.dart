@@ -10,7 +10,7 @@ void main() {
 
     test('flutter test', () async {
       var dirName = join(top, 'tekartik_simple_app');
-      //await generate(dirName: dirName, force: true);
+      await generate(dirName: dirName, force: true);
       var shell = Shell(workingDirectory: dirName);
       await flutterTest(shell);
     });

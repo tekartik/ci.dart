@@ -10,4 +10,6 @@ task:
     - dart tool/cirrus_ci_setup.dart
   matrix:
     - name: test
-      script: dart tool/cirrus_ci_test.dart
+      script:
+        - cd ci_support
+        - dart tool/cirrus_ci_test.dart
