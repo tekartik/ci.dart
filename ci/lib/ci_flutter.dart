@@ -26,7 +26,7 @@ Future<bool> generate(
     {@required String dirName, String appName, bool force}) async {
   force ??= false;
   appName ??= basename(dirName);
-  bool includeWeb = false;
+  var includeWeb = false;
   assert(dirName != null && appName != null,
       'invalid dir $dirName or app $appName');
   dirName = _fixDirName(dirName);
