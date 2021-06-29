@@ -52,7 +52,8 @@ Future<bool> generate(
   var shell = Shell(workingDirectory: dirname(dirName));
   if (includeWeb) {
     await shell.run('flutter config --enable-web');
-    await shell.run('flutter create --web --project-name $appName $dirName');
+    await shell
+        .run('flutter create --platforms web --project-name $appName $dirName');
   } else {
     await shell.run('flutter create --project-name $appName $dirName');
   }
