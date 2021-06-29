@@ -14,6 +14,6 @@ void main() {
       await generate(dirName: dirName, force: true);
       var shell = Shell(workingDirectory: dirName);
       await flutterTest(shell);
-    });
+    }, timeout: Timeout(Duration(minutes: 5)));
   });
 }
