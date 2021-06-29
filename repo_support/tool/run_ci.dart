@@ -8,5 +8,4 @@ Future main() async {
   ]) {
     await packageRunCi(join('..', dir));
   }
-  await packageRunCi('.');
 }
