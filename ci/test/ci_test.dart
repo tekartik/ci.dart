@@ -4,6 +4,7 @@ import 'package:tekartik_ci/ci_flutter.dart';
 import 'package:test/test.dart';
 
 var top = join('.dart_tool', 'tekartik_ci');
+
 void main() {
   group('flutter', () {
     setUp(() {});
