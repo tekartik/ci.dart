@@ -61,7 +61,7 @@ Future<bool> generate(
 Future flutterTest(Shell shell) async {
   await shell.run('''
   
-  flutter format --set-exit-if-changed .
+  dart format --set-exit-if-changed .
   flutter analyze --no-current-package .
   flutter test
  
