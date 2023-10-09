@@ -6,13 +6,13 @@ version: 0.1.0
 #
 
 environment:
-  sdk: '>=2.18.0 <4.0.0'
+  sdk: '>=3.1.0 <4.0.0'
 
 dependencies:
   tekartik_ci:
     git:
       url: https://github.com/tekartik/ci.dart
-      ref: dart2_3
+      ref: dart3a
   process_run:
   path:
 dev_dependencies:
@@ -21,7 +21,7 @@ dev_dependencies:
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
-      ref: dart2_3
+      ref: dart3a
 
 dependency_overrides:
   tekartik_ci:
