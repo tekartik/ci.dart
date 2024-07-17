@@ -16,6 +16,6 @@ dev_dependencies:
     version: '>=0.1.0'
   process_run: '>=0.10.3'
   test:
-  dev_test:
+  dev_build:
   lints: '>=1.0.0'
 
