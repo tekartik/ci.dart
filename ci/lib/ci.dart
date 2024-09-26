@@ -1,7 +1,7 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library tekartik_ci;
+library;
 
 export 'src/ci_base.dart';
 
