@@ -15,6 +15,6 @@ jobs:
     steps:
       - name: Install libsqlite3-dev
         run: |
-          dart pub global activate --source git git@github.com:tekartikprv/tools.dart.git --git-path ci --git-ref dart3a
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
           dart pub global run tekartik_ci:setup_sqlite3lib
 ```

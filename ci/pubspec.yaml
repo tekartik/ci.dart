@@ -10,13 +10,13 @@ environment:
 
 dependencies:
   meta:
-  path: ^1.6.0
+  path: ">=1.6.0"
   process_run: '>=1.2.0'
   dev_build: ">=1.0.1"
   io:
   pub_semver:
 dev_dependencies:
-  lints: '>=1.0.0'
+  lints: '>=5.0.0'
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart
