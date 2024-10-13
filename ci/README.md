@@ -1,22 +1,20 @@
-A library for Dart developers.
+# Setup tools for ci
 
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
+## Sqlite 3
 
-## Usage
-
-A simple usage example:
-
-```dart
-import 'package:tekartik_ci/ci_flutter.dart';
-
-main() {
-
-}
+If you ever encounter
+```
+Failed to load dynamic library 'libsqlite3.so'
 ```
 
-## Features and bugs
+you can include the following steps in your github actions workflow:
 
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: http://example.com/issues/replaceme
+```yaml
+jobs:
+  build:
+    steps:
+      - name: Install libsqlite3-dev
+        run: |
+          dart pub global activate --source git git@github.com:tekartikprv/tools.dart.git --git-path ci --git-ref dart3a
+          dart pub global run tekartik_ci:setup_sqlite3lib
+```

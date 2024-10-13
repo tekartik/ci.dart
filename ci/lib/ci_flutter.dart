@@ -4,6 +4,8 @@ import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+/// Old setup
+@Deprecated('To remove')
 Future setup() async {
   if (shellEnvironment.containsKey('TEKARTIK_CI_CIRRUS')) {
     stdout.writeln('Cirrus flutter setup');
@@ -19,6 +21,8 @@ Future setup() async {
 
 String _fixDirName(String dirName) => normalize(absolute(dirName));
 
+/// Old generate
+@Deprecated('To remove')
 Future<bool> generate(
     {required String dirName, String? appName, bool? force}) async {
   force ??= false;
@@ -58,6 +62,8 @@ Future<bool> generate(
   return true;
 }
 
+/// Old flutter test
+@Deprecated('To remove')
 Future flutterTest(Shell shell) async {
   await shell.run('''
   

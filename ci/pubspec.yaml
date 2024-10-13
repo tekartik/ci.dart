@@ -11,9 +11,17 @@ environment:
 dependencies:
   meta:
   path: ^1.6.0
-  process_run: '>=0.10.4+1'
+  process_run: '>=1.2.0'
+  dev_build: ">=1.0.1"
   io:
   pub_semver:
 dev_dependencies:
   lints: '>=1.0.0'
-  test: ^1.6.0
+  tekartik_lints:
+    git:
+      url: https://github.com/tekartik/common.dart
+      ref: dart3a
+      path: packages/lints
+  test: ">=1.6.0"
+executables:
+  setup_sqlite3lib:
