@@ -1,4 +1,4 @@
-name: Run CI dart
+name: Run CI flutter
 on:
   push:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    name: Test on ${{ matrix.os }} / dart ${{ matrix.dart }}
+    name: Test on ${{ matrix.os }} / ${{ matrix.flutter }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -17,20 +17,24 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            dart: stable
+            flutter: stable
           - os: ubuntu-latest
-            dart: beta
-          - os: ubuntu-latest
-            dart: dev
+            flutter: beta
           - os: windows-latest
-            dart: stable
+            flutter: stable
           - os: macos-latest
-            dart: stable
+            flutter: stable
     steps:
       - uses: actions/checkout@v4
-      - uses: dart-lang/setup-dart@v1.4
+      - uses: actions/setup-java@v4
         with:
-          sdk: ${{ matrix.dart }}
+          distribution: 'zulu'
+          java-version: '11.x'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter }}
+      - run: flutter --version
+      - run: flutter upgrade
       - run: dart --version
       - name: Install libsqlite3
         run: |
