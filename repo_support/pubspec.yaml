@@ -19,3 +19,5 @@ dev_dependencies:
   dev_build:
   lints: '>=1.0.0'
 
+resolution: workspace
+

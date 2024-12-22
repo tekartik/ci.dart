@@ -29,6 +29,5 @@ dev_dependencies:
       ref: dart3a
       path: packages/lints
 
-dependency_overrides:
-  tekartik_ci:
-    path: ../ci
+
+resolution: workspace
