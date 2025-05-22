@@ -15,7 +15,8 @@ Future setup() async {
     ''');
   } else {
     stdout.writeln(
-        'Use existing flutter installation ${await getFlutterBinVersion()} in ${await which('flutter')}');
+      'Use existing flutter installation ${await getFlutterBinVersion()} in ${await which('flutter')}',
+    );
   }
 }
 
@@ -23,8 +24,11 @@ String _fixDirName(String dirName) => normalize(absolute(dirName));
 
 /// Old generate
 @Deprecated('To remove')
-Future<bool> generate(
-    {required String dirName, String? appName, bool? force}) async {
+Future<bool> generate({
+  required String dirName,
+  String? appName,
+  bool? force,
+}) async {
   force ??= false;
   appName ??= basename(dirName);
   var includeWeb = false;
@@ -52,8 +56,9 @@ Future<bool> generate(
   final shell = Shell(workingDirectory: dirname(dirName));
   if (includeWeb) {
     await shell.run('flutter config --enable-web');
-    await shell
-        .run('flutter create --platforms web --project-name $appName $dirName');
+    await shell.run(
+      'flutter create --platforms web --project-name $appName $dirName',
+    );
   } else {
     await shell.run('flutter create --project-name $appName $dirName');
   }
