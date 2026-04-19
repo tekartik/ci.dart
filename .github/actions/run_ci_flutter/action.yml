@@ -36,7 +36,7 @@ runs:
         checkout-token: ${{ inputs.checkout-token }}
         flutter-channel: ${{ matrix.flutter-channel }}
         cache: ${{ inputs.cache }}
-        cache-key: ${{ inputs.cache-key-prefix }}-${{ inputs.flutter-channel }}
+        cache-key-prefix: ${{ inputs.cache-key-prefix }}
     - name: Setup dev_build
       shell: bash
       run: dart pub global activate dev_build

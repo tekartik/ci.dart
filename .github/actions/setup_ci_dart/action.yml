@@ -3,7 +3,7 @@ description: 'Checkout code + setup Flutter (with caching). Reusable across repo
 
 inputs:
   dart-channel:
-    description: 'Flutter channel or version (stable, beta, master, 3.24.x, etc.)'
+    description: 'Dart channel or version (stable, beta, master, 3.24.x, etc.)'
     required: true
     default: 'stable'
 
