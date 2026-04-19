@@ -26,6 +26,6 @@ jobs:
             flutter: stable
     steps:
       - name: Run ci flutter
-        uses: tekartik/ci.dart/.github/actions/run_ci_flutter
+        uses: tekartik/ci.dart/.github/actions/run_ci_flutter@v1
         with:
           flutter-channel: ${{ matrix.flutter }}
