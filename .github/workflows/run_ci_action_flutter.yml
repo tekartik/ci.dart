@@ -1,4 +1,4 @@
-name: Run CI flutter
+name: Run CI action flutter
 on:
   push:
   workflow_dispatch:
@@ -9,9 +9,6 @@ jobs:
   test:
     name: Test on ${{ matrix.os }} / ${{ matrix.flutter }}
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: repo_support
     strategy:
       fail-fast: false
       matrix:

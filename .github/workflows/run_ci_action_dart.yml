@@ -1,4 +1,4 @@
-name: Run CI dart
+name: Run CI action dart
 on:
   push:
   workflow_dispatch:
@@ -9,9 +9,6 @@ jobs:
   test:
     name: Test on ${{ matrix.os }} / dart ${{ matrix.dart }}
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: repo_support
     strategy:
       fail-fast: false
       matrix:
@@ -27,18 +24,8 @@ jobs:
           - os: macos-latest
             dart: stable
     steps:
-      - name: Setup dart
+      - name: Run ci dart
         uses: tekartik/ci.dart/.github/actions/run_ci_dart@V1
         with:
           dart-channel: ${{ matrix.dart }}
-      - run: dart --version
-      - name: Install libsqlite3
-        run: |
-          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
-          dart pub global run tekartik_ci:setup_sqlite3lib
-      - name: Install libportaudio
-        run: |
-          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
-          dart pub global run tekartik_ci:setup_portaudiolib
-      - run: dart pub get
-      - run: dart run tool/run_ci.dart
+
