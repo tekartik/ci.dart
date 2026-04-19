@@ -36,7 +36,7 @@ jobs:
             dart: stable
     steps:
       - name: Setup dart
-        uses: tekartik/ci.dart/.github/actions/run_ci_dart@V1
+        uses: tekartik/ci.dart/.github/actions/run_ci_dart@v1
         with:
           dart-channel: ${{ matrix.dart }}
 ```
