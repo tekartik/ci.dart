@@ -40,7 +40,10 @@ runs:
     - name: Setup dev_build
       shell: bash
       run: dart pub global activate dev_build
-    - name: Run ci
+    - name: Downgrade/analyze
       shell: bash
       run: dart pub global run dev_build:run_ci --pub-downgrade --analyze --no-override --recursive
+    - name: Upgrade/analyze
+      shell: bash
+      run: dart pub global run dev_build:run_ci --pub-upgrade --analyze --no-override --recursive
 
