@@ -31,7 +31,7 @@ runs:
   using: 'composite'
   steps:
     - name: Setup dart
-      uses: tekartik/ci.dart/.github/actions/setup_ci_dart
+      uses: tekartik/ci.dart/.github/actions/setup_ci_dart@v1
       with:
         checkout-token: ${{ inputs.checkout-token }}
         dart-channel: ${{ matrix.dart-channel }}
