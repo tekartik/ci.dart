@@ -1,0 +1,46 @@
+name: 'Run CI Dart'
+description: 'Setup Dart and run ci. Reusable across repositories.'
+
+inputs:
+  dart-channel:
+    description: 'dart channel (sdk) or version (stable, beta, master, 3.24.x, etc.)'
+    required: true
+    default: 'stable'
+
+  cache:
+    description: 'Enable pub cache'
+    required: false
+    default: 'true'
+
+  cache-key-prefix:
+    description: 'Prefix for cache key'
+    required: false
+    default: 'flutter'
+
+  working-directory:
+    description: 'Directory where flutter pub get should run'
+    required: false
+    default: '.'
+
+  checkout-token:
+    description: 'Token to use for checkout (useful for private repos)'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup dart
+      uses: tekartik/ci.dart/.github/actions/setup_ci_dart
+      with:
+        checkout-token: ${{ inputs.checkout-token }}
+        dart-channel: ${{ matrix.dart-channel }}
+        cache: ${{ inputs.cache }}
+        cache-key: ${{ inputs.cache-key-prefix }}-${{ inputs.dart-channel }}
+    - name: Setup dev_build
+      shell: bash
+      run: dart pub global activate dev_build
+    - name: Run ci
+      shell: bash
+      run: dart pub global run dev_build:run_ci --recursive
+

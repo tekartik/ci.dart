@@ -1,0 +1,43 @@
+name: 'Setup Dart'
+description: 'Checkout code + setup Flutter (with caching). Reusable across repositories.'
+
+inputs:
+  dart-channel:
+    description: 'Dart channel or version (stable, beta, master, 3.24.x, etc.)'
+    required: true
+    default: 'stable'
+
+  cache:
+    description: 'Enable pub cache'
+    required: false
+    default: 'true'
+
+  cache-key-prefix:
+    description: 'Prefix for cache key'
+    required: false
+    default: 'flutter'
+
+  working-directory:
+    description: 'Directory where flutter pub get should run'
+    required: false
+    default: '.'
+
+  checkout-token:
+    description: 'Token to use for checkout (useful for private repos)'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+      with:
+        token: ${{ inputs.checkout-token }}
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: ${{ inputs.flutter-channel }}
+        cache: ${{ inputs.cache }}
+        cache-key: ${{ inputs.cache-key-prefix }}-${{ inputs.flutter-channel }}
