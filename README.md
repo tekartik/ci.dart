@@ -35,7 +35,7 @@ jobs:
           - os: macos-latest
             dart: stable
     steps:
-      - name: Setup dart
+      - name: Run CI dart
         uses: tekartik/ci.dart/.github/actions/run_ci_dart@v1
         with:
           dart-channel: ${{ matrix.dart }}
@@ -86,7 +86,7 @@ jobs:
           - os: macos-latest
             flutter: stable
     steps:
-      - name: Run ci flutter
+      - name: Run CI flutter
         uses: tekartik/ci.dart/.github/actions/run_ci_flutter@v1
         with:
           flutter-channel: ${{ matrix.flutter }}
@@ -109,3 +109,42 @@ Optional inputs:
 | `working-directory` | `.`            | Directory where pub get runs                  |
 | `checkout-token`    | `github.token` | Token for checkout (useful for private repos) |
 
+### Flutter Analyze (downgrade and upgrade)
+
+Runs a downgrade+analyze followed by an upgrade+analyze to verify dependency compatibility at both ends. Add the following workflow to your repository:
+
+```yaml
+name: Analyze Flutter (downgrade and upgrade)
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # every sunday at midnight
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Full flutter analysis
+        uses: tekartik/ci.dart/.github/actions/run_ci_flutter_analyze@v1
+        with:
+          flutter-channel: stable
+```
+
+The `run_ci_flutter_analyze` action:
+
+- Checks out the repository
+- Sets up the Flutter SDK for the specified channel/version
+- Activates `dev_build`
+- Runs `pub downgrade` then `analyze` recursively
+- Runs `pub upgrade` then `analyze` recursively
+
+Optional inputs:
+
+| Input               | Default        | Description                                   |
+|---------------------|----------------|-----------------------------------------------|
+| `flutter-channel`   | `stable`       | Flutter channel or version                    |
+| `cache`             | `true`         | Enable pub cache                              |
+| `cache-key-prefix`  | `flutter`      | Prefix for cache key                          |
+| `working-directory` | `.`            | Directory where pub get runs                  |
+| `checkout-token`    | `github.token` | Token for checkout (useful for private repos) |
