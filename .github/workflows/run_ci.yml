@@ -34,11 +34,11 @@ jobs:
       - run: dart --version
       - name: Install libsqlite3
         run: |
-          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
           dart pub global run tekartik_ci:setup_sqlite3lib
       - name: Install libportaudio
         run: |
-          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
           dart pub global run tekartik_ci:setup_portaudiolib
       - run: dart pub get
       - run: dart run tool/run_ci.dart

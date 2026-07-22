@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Install libsqlite3
         run: |
-          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
           dart pub global run tekartik_ci:setup_sqlite3lib
 ```
 
@@ -35,6 +35,6 @@ jobs:
     steps:
       - name: Install libportaudio
         run: |
-          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci --git-ref dart3a
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
           dart pub global run tekartik_ci:setup_portaudiolib
 ```
