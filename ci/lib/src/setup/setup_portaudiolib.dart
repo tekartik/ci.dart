@@ -8,6 +8,7 @@ Future<void> sudoSetupPortaudioLib() async {
   /// Can only be called from CI without any sudo access issue.
   if (Platform.isLinux) {
     // Assuming ubuntu, to run as sudo
+    await run('sudo apt-get update');
     await run('sudo apt-get -y install portaudio19-dev');
   }
 }
