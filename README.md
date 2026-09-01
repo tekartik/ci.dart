@@ -148,3 +148,33 @@ Optional inputs:
 | `cache-key-prefix`  | `flutter`      | Prefix for cache key                          |
 | `working-directory` | `.`            | Directory where pub get runs                  |
 | `checkout-token`    | `github.token` | Token for checkout (useful for private repos) |
+
+## Releasing
+
+Workflows reference the actions through the `@v1` tag. GitHub resolves that tag
+to a commit and runs the action definition from *that* snapshot, so changes
+pushed to `master` have no effect on consumers until `v1` is moved.
+
+To release:
+
+1. Bump `version:` in `repo_support/pubspec.yaml`
+2. Commit and push the changes on `master`
+3. Tag and move `v1`:
+
+   ```
+   cd repo_support
+   dart run tool/new_tag_current_and_v1_and_push.dart
+   ```
+
+The tool reads the version from `repo_support/pubspec.yaml`, creates the
+matching `vX.Y.Z` tag, repoints `v1` to it and pushes both. It aborts if the
+version tag already exists, so bump the version first.
+
+To move `v1` only, without creating a version tag:
+
+```
+cd repo_support
+dart run tool/tag_v1_and_push.dart
+```
+
+New runs pick up the moved tag immediately, there is no action cache to clear.
