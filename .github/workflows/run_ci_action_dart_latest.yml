@@ -1,4 +1,4 @@
-name: Run CI action dart
+name: Run CI action dart latest
 on:
   push:
   workflow_dispatch:
