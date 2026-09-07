@@ -36,9 +36,13 @@ runs:
         token: ${{ inputs.checkout-token }}
 
     - name: Setup Dart
-      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1
-      # - uses: dart-lang/setup-dart@7654d458321ee25acccccfdb86cd48bd95768ff1 # v1.8.0
-      # - uses: dart-lang/setup-dart@v1 latest
+      uses: dart-lang/setup-dart@v1
       with:
         sdk: ${{ matrix.dart-channel }}
+        # Workaround for https://github.com/dart-lang/setup-dart/issues/198:
+        # setup-dart fails to register its analyzer problem matcher when used
+        # inside a composite action. Disabling the matcher only skips GitHub
+        # annotations; analyzer output is unchanged.
+        # Same technique as https://github.com/leoafarias/fvm/pull/1071
+        problem-matcher: false
 
