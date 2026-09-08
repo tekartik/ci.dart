@@ -27,8 +27,5 @@ jobs:
     steps:
       - name: Setup flutter
         uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
-      - run: flutter --version
-      - run: flutter upgrade
-      - run: dart --version
-      - run: dart pub get
-      - run: dart run tool/run_ci.dart
+      - name: Run CI Dart no setup
+        uses: tekartik/ci.dart/.github/actions/run_ci_no_setup@v1
