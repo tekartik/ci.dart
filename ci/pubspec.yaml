@@ -29,4 +29,5 @@ dev_dependencies:
 executables:
   setup_sqlite3lib:
   setup_portaudiolib:
+  setup_alsalib:
 resolution: workspace

@@ -40,5 +40,9 @@ jobs:
         run: |
           dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
           dart pub global run tekartik_ci:setup_portaudiolib
+      - name: Install libasound2
+        run: |
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
+          dart pub global run tekartik_ci:setup_alsalib
       - run: dart pub get
       - run: dart run tool/run_ci.dart
