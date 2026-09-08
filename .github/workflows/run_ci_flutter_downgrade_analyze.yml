@@ -19,13 +19,12 @@ jobs:
           - os: ubuntu-latest
             flutter: stable
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'zulu'
-          java-version: '17.x'
-      - uses: subosito/flutter-action@v2
-        with:
+      - run_ci_flutter:
+          yml:
+        name: Run ci flutter
+            uses: tekartik/ci.dart/.github/actions/run_ci_flutter@v1
+            with:
+              flutter-
           channel: ${{ matrix.flutter }}
       - run: dart --version
       - run: flutter --version
