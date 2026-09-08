@@ -19,13 +19,8 @@ jobs:
           - os: ubuntu-latest
             flutter: stable
     steps:
-      - run_ci_flutter:
-          yml:
-        name: Run ci flutter
-            uses: tekartik/ci.dart/.github/actions/run_ci_flutter@v1
-            with:
-              flutter-
-          channel: ${{ matrix.flutter }}
+      - name: Setup flutter
+        uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
       - run: dart --version
       - run: flutter --version
       - run: dart pub global activate dev_build
