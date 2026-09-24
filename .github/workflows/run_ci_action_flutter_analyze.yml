@@ -1,3 +1,5 @@
+# Prefer the new default run_ci_workflow_flutter_analyze.yml (reusable workflow,
+# one job per step).
 name: Analyze Flutter (downgrade and upgrade)
 on:
   push:

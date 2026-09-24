@@ -1,3 +1,6 @@
+# New default (preferred over run_ci_action_dart.yml and
+# run_ci_action_dart_latest.yml): run ci as separate jobs (pub get, analyze,
+# format, test, build) for each os/sdk.
 name: Run CI workflow dart all
 on:
   push:

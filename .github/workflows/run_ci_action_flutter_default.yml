@@ -1,3 +1,5 @@
+# Prefer the new default run_ci_workflow_flutter_default.yml (reusable workflow,
+# one job per step).
 name: Run CI action flutter default
 on:
   push:

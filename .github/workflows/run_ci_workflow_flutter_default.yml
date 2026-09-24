@@ -1,3 +1,5 @@
+# New default (preferred over run_ci_action_flutter_default.yml): run ci as
+# separate jobs (pub get, analyze, format, test, build).
 name: Run CI workflow flutter default
 on:
   push:

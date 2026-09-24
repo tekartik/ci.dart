@@ -1,0 +1,107 @@
+# Reusable workflow: analyze with the latest (pub get) and the lowest
+# (pub downgrade) dependencies as separate jobs:
+# - pub get then analyze
+# - pub downgrade then analyze
+#
+# Usage (from another workflow):
+#
+# jobs:
+#   ci:
+#     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_analyze_jobs.yml@v1
+#
+# Each pub job saves its result (pub cache, .dart_tool, pubspec.lock) in a
+# cache scoped to the current run, its analyze job restores it and runs with
+# --no-pub-get.
+name: Run CI flutter analyze jobs
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: 'Flutter channel (stable, beta, master)'
+        type: string
+        required: false
+        default: 'stable'
+      runs-on:
+        description: 'Runner (ubuntu-latest, windows-latest, macos-latest)'
+        type: string
+        required: false
+        default: 'ubuntu-latest'
+
+permissions:
+  contents: read
+
+env:
+  # Everything produced by pub get/downgrade, shared between jobs.
+  PUB_GET_PATHS: |
+    ~/.pub-cache
+    ~/AppData/Local/Pub/Cache
+    **/.dart_tool
+    **/pubspec.lock
+    **/.flutter-plugins-dependencies
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  pub_get:
+    name: Pub get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
+        with:
+          flutter-channel: ${{ inputs.channel }}
+      - run: flutter --version
+      - run: dart run dev_build:run_ci@ --pub-get --no-override --recursive
+      - name: Save pub get result
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-flutter-analyze-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
+
+  analyze:
+    name: Analyze
+    needs: pub_get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
+        with:
+          flutter-channel: ${{ inputs.channel }}
+      - name: Restore pub get result
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-flutter-analyze-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
+          fail-on-cache-miss: true
+      - run: dart run dev_build:run_ci@ --analyze --no-pub-get --no-override --recursive
+
+  pub_downgrade:
+    name: Pub downgrade
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
+        with:
+          flutter-channel: ${{ inputs.channel }}
+      - run: flutter --version
+      - run: dart run dev_build:run_ci@ --pub-downgrade --no-override --recursive
+      - name: Save pub downgrade result
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-flutter-analyze-pub-downgrade-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
+
+  analyze_downgrade:
+    name: Analyze downgrade
+    needs: pub_downgrade
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
+        with:
+          flutter-channel: ${{ inputs.channel }}
+      - name: Restore pub downgrade result
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-flutter-analyze-pub-downgrade-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
+          fail-on-cache-miss: true
+      - run: dart run dev_build:run_ci@ --analyze --no-pub-get --no-override --recursive
