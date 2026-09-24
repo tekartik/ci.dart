@@ -1,0 +1,40 @@
+name: Run CI workflow flutter all
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # every sunday at midnight
+
+# One job per os/channel (no matrix) so that each one is displayed as its own
+# group (pub get then analyze, format, test, build) in the workflow graph.
+#
+# From another repository use:
+# uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+jobs:
+  ubuntu_stable:
+    name: ubuntu stable
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
+    with:
+      channel: stable
+      runs-on: ubuntu-latest
+
+  ubuntu_beta:
+    name: ubuntu beta
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
+    with:
+      channel: beta
+      runs-on: ubuntu-latest
+
+  windows_stable:
+    name: windows stable
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
+    with:
+      channel: stable
+      runs-on: windows-latest
+
+  macos_stable:
+    name: macos stable
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
+    with:
+      channel: stable
+      runs-on: macos-latest

@@ -1,0 +1,128 @@
+# Reusable workflow: run ci as separate jobs (pub get, analyze, format, test, build).
+#
+# Usage (from another workflow):
+#
+# jobs:
+#   ci:
+#     uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1
+#
+# The pub get job saves its result (pub cache, .dart_tool, pubspec.lock) in a
+# cache scoped to the current run, the other jobs restore it and run with
+# --no-pub-get.
+#
+# Dart setup is not tekartik/ci.dart setup_ci_dart@v1 as it ignores its
+# dart-channel input (uses matrix.dart-channel, always installing stable).
+name: Run CI dart jobs
+on:
+  workflow_call:
+    inputs:
+      sdk:
+        description: 'Dart sdk channel or version (stable, beta, dev, 3.13.x...)'
+        type: string
+        required: false
+        default: 'stable'
+      runs-on:
+        description: 'Runner (ubuntu-latest, windows-latest, macos-latest)'
+        type: string
+        required: false
+        default: 'ubuntu-latest'
+
+permissions:
+  contents: read
+
+env:
+  # Everything produced by pub get, shared between jobs.
+  PUB_GET_PATHS: |
+    ~/.pub-cache
+    ~/AppData/Local/Pub/Cache
+    **/.dart_tool
+    **/pubspec.lock
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  pub_get:
+    name: Pub get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - run: dart --version
+      - run: dart run dev_build:run_ci@ --pub-get --recursive
+      - name: Save pub get result
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
+
+  analyze:
+    name: Analyze
+    needs: pub_get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - name: Restore pub get result
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
+          fail-on-cache-miss: true
+      - run: dart run dev_build:run_ci@ --analyze --no-pub-get --recursive
+
+  format:
+    name: Format
+    needs: pub_get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - name: Restore pub get result
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
+          fail-on-cache-miss: true
+      - run: dart run dev_build:run_ci@ --format --no-pub-get --recursive
+
+  test:
+    name: Test
+    needs: pub_get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - name: Restore pub get result
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
+          fail-on-cache-miss: true
+      - run: dart run dev_build:run_ci@ --test --no-pub-get --recursive
+
+  build:
+    name: Build
+    needs: pub_get
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - name: Restore pub get result
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.PUB_GET_PATHS }}
+          key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
+          fail-on-cache-miss: true
+      - run: dart run dev_build:run_ci@ --build --no-pub-get --recursive
