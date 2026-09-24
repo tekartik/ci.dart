@@ -7,8 +7,8 @@
 #     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
 #
 # The pub get job saves its result (pub cache, .dart_tool, pubspec.lock) in a
-# cache scoped to the current run, the other jobs restore it and run with
-# --no-pub-get.
+# cache scoped to the current run, the other jobs restore it (running pub get
+# again if the cache entry was evicted) and run with --no-pub-get.
 name: Run CI flutter jobs
 on:
   workflow_call:
@@ -48,6 +48,9 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - run: flutter --version
       - run: dart run dev_build:run_ci@ --pub-get --recursive
       - name: Save pub get result
@@ -64,12 +67,20 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-flutter-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --analyze --no-pub-get --recursive
 
   format:
@@ -80,12 +91,20 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-flutter-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --format --no-pub-get --recursive
 
   test:
@@ -96,12 +115,20 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-flutter-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --test --no-pub-get --recursive
 
   build:
@@ -112,10 +139,18 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-flutter-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --build --no-pub-get --recursive

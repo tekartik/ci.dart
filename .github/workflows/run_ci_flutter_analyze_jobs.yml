@@ -10,8 +10,8 @@
 #     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_analyze_jobs.yml@v1
 #
 # Each pub job saves its result (pub cache, .dart_tool, pubspec.lock) in a
-# cache scoped to the current run, its analyze job restores it and runs with
-# --no-pub-get.
+# cache scoped to the current run, its analyze job restores it (running the pub
+# command again if the cache entry was evicted) and runs with --no-pub-get.
 name: Run CI flutter analyze jobs
 on:
   workflow_call:
@@ -51,6 +51,9 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - run: flutter --version
       - run: dart run dev_build:run_ci@ --pub-get --no-override --recursive
       - name: Save pub get result
@@ -67,12 +70,20 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-flutter-analyze-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --no-override --recursive
       - run: dart run dev_build:run_ci@ --analyze --no-pub-get --no-override --recursive
 
   pub_downgrade:
@@ -82,6 +93,9 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - run: flutter --version
       - run: dart run dev_build:run_ci@ --pub-downgrade --no-override --recursive
       - name: Save pub downgrade result
@@ -98,10 +112,18 @@ jobs:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
+          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
+          # repository cache small (10GB limit) for the pub get results.
+          cache: false
       - name: Restore pub downgrade result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-flutter-analyze-pub-downgrade-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.channel }}
-          fail-on-cache-miss: true
+      - name: Pub downgrade again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub downgrade result not found in cache (evicted), running pub downgrade again"
+          dart run dev_build:run_ci@ --pub-downgrade --no-override --recursive
       - run: dart run dev_build:run_ci@ --analyze --no-pub-get --no-override --recursive

@@ -7,8 +7,8 @@
 #     uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1
 #
 # The pub get job saves its result (pub cache, .dart_tool, pubspec.lock) in a
-# cache scoped to the current run, the other jobs restore it and run with
-# --no-pub-get.
+# cache scoped to the current run, the other jobs restore it (running pub get
+# again if the cache entry was evicted) and run with --no-pub-get.
 #
 # Dart setup is not tekartik/ci.dart setup_ci_dart@v1 as it ignores its
 # dart-channel input (uses matrix.dart-channel, always installing stable).
@@ -69,11 +69,16 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --analyze --no-pub-get --recursive
 
   format:
@@ -86,11 +91,16 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --format --no-pub-get --recursive
 
   test:
@@ -103,11 +113,16 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --test --no-pub-get --recursive
 
   build:
@@ -120,9 +135,14 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
       - name: Restore pub get result
+        id: pub_result
         uses: actions/cache/restore@v6
         with:
           path: ${{ env.PUB_GET_PATHS }}
           key: run-ci-pub-get-${{ github.run_id }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.sdk }}
-          fail-on-cache-miss: true
+      - name: Pub get again (cache entry evicted)
+        if: steps.pub_result.outputs.cache-hit != 'true'
+        run: |
+          echo "::notice::Pub get result not found in cache (evicted), running pub get again"
+          dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --build --no-pub-get --recursive
