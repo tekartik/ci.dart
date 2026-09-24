@@ -10,6 +10,4 @@ on:
 jobs:
   ci:
     name: Run ci
-    # From another repository:
-    # uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1
-    uses: ./.github/workflows/run_ci_dart_jobs.yml
+    uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1

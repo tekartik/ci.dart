@@ -1,6 +1,4 @@
-# New default (preferred over run_ci_action_flutter.yml): run ci as separate
-# jobs (pub get, analyze, format, test, build) for each os/channel.
-name: Run CI workflow flutter all
+name: Run CI workflow local flutter all
 on:
   push:
   workflow_dispatch:
@@ -12,28 +10,28 @@ on:
 jobs:
   ubuntu_stable:
     name: ubuntu stable
-    uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
     with:
       channel: stable
       runs-on: ubuntu-latest
 
   ubuntu_beta:
     name: ubuntu beta
-    uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
     with:
       channel: beta
       runs-on: ubuntu-latest
 
   windows_stable:
     name: windows stable
-    uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
     with:
       channel: stable
       runs-on: windows-latest
 
   macos_stable:
     name: macos stable
-    uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+    uses: ./.github/workflows/run_ci_flutter_jobs.yml
     with:
       channel: stable
       runs-on: macos-latest
