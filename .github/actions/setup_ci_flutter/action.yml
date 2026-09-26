@@ -8,9 +8,14 @@ inputs:
     default: 'stable'
 
   cache:
-    description: 'Enable pub cache'
+    description: 'Cache the flutter sdk and the pub cache across runs'
     required: false
     default: 'true'
+
+  pub-cache:
+    description: 'Cache the pub cache across runs (true/false, defaults to cache)'
+    required: false
+    default: ''
 
   cache-key-prefix:
     description: 'Prefix for cache key'
@@ -41,3 +46,4 @@ runs:
         channel: ${{ inputs.flutter-channel }}
         cache: ${{ inputs.cache }}
         cache-key: ${{ inputs.cache-key-prefix }}-${{ inputs.flutter-channel }}
+        pub-cache: ${{ inputs.pub-cache }}

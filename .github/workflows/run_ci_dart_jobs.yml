@@ -2,6 +2,13 @@
 #
 # Usage (from another workflow):
 #
+# on:
+#   push:
+#     branches: ['**'] # Not on tag pushes
+#   workflow_dispatch:
+#   schedule: # Weekly, can be removed (experiment repositories)
+#     - cron: '0 0 * * 0'
+#
 # jobs:
 #   ci:
 #     uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1
@@ -9,6 +16,8 @@
 # The pub get job saves its result (pub cache, .dart_tool, pubspec.lock) in a
 # cache scoped to the current run, the other jobs restore it (running pub get
 # again if the cache entry was evicted) and run with --no-pub-get.
+#
+# A new run of the calling workflow on the same ref cancels the older one.
 #
 # Dart setup is not tekartik/ci.dart setup_ci_dart@v1 as it ignores its
 # dart-channel input (uses matrix.dart-channel, always installing stable).
@@ -26,9 +35,20 @@ on:
         type: string
         required: false
         default: 'ubuntu-latest'
+      timeout-minutes:
+        description: 'Timeout of each job in minutes'
+        type: number
+        required: false
+        default: 30
 
 permissions:
   contents: read
+
+# The calling workflow (workflow_ref includes the ref) and the inputs are part
+# of the group so that the calls for each os/sdk do not cancel each other.
+concurrency:
+  group: run-ci-dart-jobs-${{ github.workflow_ref }}-${{ inputs.runs-on }}-${{ inputs.sdk }}
+  cancel-in-progress: true
 
 env:
   # Everything produced by pub get, shared between jobs.
@@ -46,6 +66,7 @@ jobs:
   pub_get:
     name: Pub get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -63,6 +84,7 @@ jobs:
     name: Analyze
     needs: pub_get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -85,6 +107,7 @@ jobs:
     name: Format
     needs: pub_get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -107,6 +130,7 @@ jobs:
     name: Test
     needs: pub_get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -129,6 +153,7 @@ jobs:
     name: Build
     needs: pub_get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1

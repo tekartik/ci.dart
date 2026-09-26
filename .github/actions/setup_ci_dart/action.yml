@@ -8,14 +8,14 @@ inputs:
     default: 'stable'
 
   cache:
-    description: 'Enable pub cache'
+    description: 'Cache the pub cache across runs'
     required: false
     default: 'true'
 
   cache-key-prefix:
     description: 'Prefix for cache key'
     required: false
-    default: 'flutter'
+    default: 'dart'
 
   working-directory:
     description: 'Directory where flutter pub get should run'
@@ -46,3 +46,13 @@ runs:
         # Same technique as https://github.com/leoafarias/fvm/pull/1071
         problem-matcher: false
 
+    - name: Cache pub
+      if: inputs.cache == 'true'
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/.pub-cache
+          ~/AppData/Local/Pub/Cache
+        key: ${{ inputs.cache-key-prefix }}-pub-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dart-channel }}-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ inputs.cache-key-prefix }}-pub-${{ runner.os }}-${{ runner.arch }}-${{ inputs.dart-channel }}-

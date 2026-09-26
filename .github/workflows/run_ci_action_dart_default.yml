@@ -3,14 +3,22 @@
 name: Run CI action dart default
 on:
   push:
+    branches: ['**'] # Not on tag pushes
+    paths-ignore: ['**.md'] # Not on doc only changes
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'  # every sunday at midnight
+
+# A new run on the same ref cancels the older one.
+concurrency:
+  group: ${{ github.workflow_ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: Run ci default
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Run ci dart
         uses: tekartik/ci.dart/.github/actions/run_ci_dart@v1

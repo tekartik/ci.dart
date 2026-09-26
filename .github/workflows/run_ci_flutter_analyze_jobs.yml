@@ -5,6 +5,13 @@
 #
 # Usage (from another workflow):
 #
+# on:
+#   push:
+#     branches: ['**'] # Not on tag pushes
+#   workflow_dispatch:
+#   schedule: # Weekly, can be removed (experiment repositories)
+#     - cron: '0 0 * * 0'
+#
 # jobs:
 #   ci:
 #     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_analyze_jobs.yml@v1
@@ -12,6 +19,8 @@
 # Each pub job saves its result (pub cache, .dart_tool, pubspec.lock) in a
 # cache scoped to the current run, its analyze job restores it (running the pub
 # command again if the cache entry was evicted) and runs with --no-pub-get.
+#
+# A new run of the calling workflow on the same ref cancels the older one.
 name: Run CI flutter analyze jobs
 on:
   workflow_call:
@@ -26,9 +35,29 @@ on:
         type: string
         required: false
         default: 'ubuntu-latest'
+      cache:
+        description: >-
+          Cache the flutter sdk (~2GB per os/channel) and the pub cache across
+          runs. The repository cache is limited to 10GB, if many os/channel
+          are used, the pub results of a run might be evicted (the jobs then
+          run the pub command again), set it to false in this case.
+        type: boolean
+        required: false
+        default: true
+      timeout-minutes:
+        description: 'Timeout of each job in minutes'
+        type: number
+        required: false
+        default: 30
 
 permissions:
   contents: read
+
+# The calling workflow (workflow_ref includes the ref) and the inputs are part
+# of the group so that the calls for each os/channel do not cancel each other.
+concurrency:
+  group: run-ci-flutter-analyze-jobs-${{ github.workflow_ref }}-${{ inputs.runs-on }}-${{ inputs.channel }}
+  cancel-in-progress: true
 
 env:
   # Everything produced by pub get/downgrade, shared between jobs.
@@ -47,13 +76,12 @@ jobs:
   pub_get:
     name: Pub get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
-          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
-          # repository cache small (10GB limit) for the pub get results.
-          cache: false
+          cache: ${{ inputs.cache }}
       - run: flutter --version
       - run: dart run dev_build:run_ci@ --pub-get --no-override --recursive
       - name: Save pub get result
@@ -66,13 +94,14 @@ jobs:
     name: Analyze
     needs: pub_get
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
-          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
-          # repository cache small (10GB limit) for the pub get results.
-          cache: false
+          cache: ${{ inputs.cache }}
+          # The pub cache comes from the pub result.
+          pub-cache: false
       - name: Restore pub get result
         id: pub_result
         uses: actions/cache/restore@v6
@@ -89,13 +118,12 @@ jobs:
   pub_downgrade:
     name: Pub downgrade
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
-          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
-          # repository cache small (10GB limit) for the pub get results.
-          cache: false
+          cache: ${{ inputs.cache }}
       - run: flutter --version
       - run: dart run dev_build:run_ci@ --pub-downgrade --no-override --recursive
       - name: Save pub downgrade result
@@ -108,13 +136,14 @@ jobs:
     name: Analyze downgrade
     needs: pub_downgrade
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
         with:
           flutter-channel: ${{ inputs.channel }}
-          # No flutter sdk cache (~2GB per os/channel/branch/tag) to keep the
-          # repository cache small (10GB limit) for the pub get results.
-          cache: false
+          cache: ${{ inputs.cache }}
+          # The pub cache comes from the pub result.
+          pub-cache: false
       - name: Restore pub downgrade result
         id: pub_result
         uses: actions/cache/restore@v6

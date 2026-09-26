@@ -3,14 +3,22 @@
 name: Run CI action dart latest
 on:
   push:
+    branches: ['**'] # Not on tag pushes
+    paths-ignore: ['**.md'] # Not on doc only changes
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'  # every sunday at midnight
+
+# A new run on the same ref cancels the older one.
+concurrency:
+  group: ${{ github.workflow_ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: Test on ${{ matrix.os }} / dart ${{ matrix.dart }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
