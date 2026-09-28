@@ -376,6 +376,10 @@ clone of ci.dart (`d624d34`):
 | `run_ci_workflow_local_dart_all.yml`, dry run                                          | ubuntu stable/beta/dev run, windows and macos jobs skipped                                                                               |
 | a template file outside `.github/workflows` (`-W templates/public_dart.yml`), dry run  | works, the `@v1` references resolve in the local checkout; ubuntu jobs listed, windows/macos skipped                                     |
 | `run_ci_workflow_local_flutter_default.yml` (`setup_ci_flutter@v1` -> subosito)        | 3m49s, 5 jobs green; subosito downloads the sdk once (1m9s), the 4 other jobs find it in the shared toolcache (0.6s), pub get handoff restored |
+| a workflow without `actions/checkout` (probe running `ls -a`)                          | empty workspace: the copy happens at the checkout step                                                                                   |
+| what the checkout step copies from the ci.dart root (same probe)                        | `.gitignore` honoured: no `pubspec_overrides.yaml`, `.dart_tool/`, `pubspec.lock`; `.git` and untracked files present                    |
+| `repo_support/example/act_pub_get` minimal workflow (section 5.6)                       | 3.9s, checkout + setup-dart + `dart pub get` green, `+ path 1.9.1` resolved in the container                                             |
+| `repo_support/tool/act_run.dart` in place (section 5.7)                                | dry run clean, `local_dart_default` 37s, 5 jobs green, dev_build resolved from pub.dev (the root overrides did not leak)                |
 
 ### 5.1 Setup
 
@@ -395,10 +399,13 @@ run asks interactively which image size to use and writes the file itself):
 
 ### 5.2 Commands
 
-Always from a clean checkout: act copies the working directory into the
-container, untracked and ignored files included (`pubspec_overrides.yaml`,
-`.dart_tool/`, `.idea/`). A `git worktree add` or a local clone is the
-simplest.
+act copies the current folder into the container at the `actions/checkout`
+step (a workflow without that step gets an empty workspace), honouring the
+`.gitignore` files found in that folder (`--use-gitignore`, default true):
+`pubspec_overrides.yaml`, `.dart_tool/` and `pubspec.lock` stay out, `.git`
+and untracked files go in, so the working tree with its uncommitted changes
+is what runs. A `.gitignore` above the folder is not read: a sub folder run
+on its own (section 5.6) needs its own.
 
 ```
 # what master gives (./ reusable workflow, local actions)
@@ -467,6 +474,8 @@ between runs, `--json`.
 
 ### 5.5 In the tool
 
+`repo_support/tool/act_run.dart` (section 5.7) is the standalone version,
+`repo_support/tool/act_example_pub_get.dart` (section 5.6) the smallest one.
 `gh_workflow_run.dart --local` runs the same `<workflow>` names through act
 instead of dispatching: `gh act workflow_dispatch -W <file>
 --local-repository tekartik/ci.dart@v1=<repo root> --cache-server-path
@@ -476,6 +485,233 @@ extension is installed else `act`. Same names locally and remotely:
 ```
 dart run tool/gh_workflow_run.dart local_dart_default --local
 dart run tool/gh_workflow_run.dart local_dart_default --ref master
+```
+
+### 5.6 Minimal example: a pub get workflow *(exists)*
+
+`repo_support/example/act_pub_get` is a package reduced to a `pubspec.yaml`
+(one dependency) with its own workflow and `.gitignore`, and
+`repo_support/tool/act_example_pub_get.dart` runs it with act. Verified
+2026-09-28: 3.9s, job green, `+ path 1.9.1` resolved in the container (the
+dart sdk comes from act's tool cache after the first run).
+
+```
+cd repo_support
+dart run tool/act_example_pub_get.dart              # first run pulls the image
+dart run tool/act_example_pub_get.dart -n           # dry run
+dart run tool/act_example_pub_get.dart --pull=false -v
+```
+
+`example/act_pub_get/.github/workflows/pub_get.yml` (GitHub never runs it,
+only the root `.github/workflows` folder is read):
+
+```yaml
+# Minimal workflow for the act example (repo_support/tool/act_example_pub_get.dart):
+# checkout, dart sdk, pub get.
+#
+# GitHub never runs it: workflows are only read from the .github/workflows
+# folder at the root of the repository.
+name: Pub get
+on:
+  workflow_dispatch:
+
+jobs:
+  pub_get:
+    name: Pub get
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+      - run: dart --version
+      - run: dart pub get
+```
+
+`tool/act_example_pub_get.dart`: the script runs act *in* the example folder
+(act copies the current folder at the checkout step) and passes its own
+arguments on to act.
+
+```dart
+import 'package:dev_build/shell.dart';
+import 'package:path/path.dart';
+
+/// Run the minimal pub get workflow of `example/act_pub_get` with act.
+///
+///     dart run tool/act_example_pub_get.dart [act options]
+///
+/// act copies `example/act_pub_get` into an ubuntu container at the checkout
+/// step, installs the dart sdk and runs `dart pub get` there. Extra arguments
+/// go to act (`-n` dry run, `--pull=false`, `-v`...).
+///
+/// Needs docker and act (`gh extension install nektos/gh-act` or the `act`
+/// binary in the path).
+Future<void> main(List<String> args) async {
+  var act = whichSync('act') != null ? 'act' : 'gh act';
+  var shell = Shell(workingDirectory: join('example', 'act_pub_get'));
+  await shell.run(
+    '$act workflow_dispatch -W .github/workflows/pub_get.yml'
+    ' -P ubuntu-latest=catthehacker/ubuntu:act-latest'
+    ' ${shellArguments(args)}',
+  );
+}
+```
+
+### 5.7 Example: `repo_support/tool/act_run.dart` *(exists)*
+
+A tool on `package:dev_build/shell.dart` (the process_run `Shell`) that runs
+one ci.dart workflow through act. Verified 2026-09-28: dry run without a
+warning, real run of `local_dart_default` in 37s with the 5 jobs green.
+
+```
+cd repo_support
+dart run tool/act_run.dart local_dart_default       # real run, ubuntu stable
+dart run tool/act_run.dart -n local_dart_all        # dry run, all ubuntu groups
+dart run tool/act_run.dart -j ubuntu_beta local_dart_all
+dart run tool/act_run.dart --no-local dart_default  # real v1, not this checkout
+```
+
+What it does:
+
+- finds the workflow in `.github/workflows` by file name or unique suffix
+  (`local_dart_default` is `run_ci_workflow_local_dart_default.yml`);
+- uses `act` from the path, or `gh act` when the extension is installed;
+- runs in place: act copies the repository at the checkout step honouring
+  `.gitignore`, so the root `pubspec_overrides.yaml` (local paths here) and
+  `.dart_tool/` stay out and the working tree, uncommitted changes included,
+  is what runs;
+- passes the ubuntu image, `--pull` only when the image is missing,
+  `--cache-server-path .dart_tool/act_cache` (delete it when the pub get job
+  itself changed) and `--local-repository tekartik/ci.dart@v1=<repo>`;
+- runs act with `Shell(workingDirectory: root)`, `shellArguments` quoting
+  the options, and reports the `ShellException` on failure.
+
+```dart
+import 'dart:io';
+
+import 'package:args/args.dart';
+import 'package:dev_build/shell.dart';
+import 'package:path/path.dart';
+
+/// Run a ci.dart workflow locally with act (ubuntu jobs only).
+///
+///     dart run tool/act_run.dart [options] <workflow>
+///
+/// `<workflow>` is a file of `.github/workflows`
+/// (`run_ci_workflow_local_dart_default.yml`, or just `local_dart_default`).
+///
+/// - act copies the repository into the container at the checkout step,
+///   `.gitignore` honoured: `pubspec_overrides.yaml`, `.dart_tool/` and
+///   `pubspec.lock` stay out, untracked files go in.
+/// - `tekartik/ci.dart@v1` references (reusable workflows and actions, nested
+///   ones included) are replaced by this checkout, so the working tree is what
+///   runs.
+/// - The act cache (pub get handoff between jobs) lives in `.dart_tool/act_cache`
+///   of the repository, delete it when the pub get job itself changed.
+///
+/// Needs docker and act (`gh extension install nektos/gh-act` or the `act`
+/// binary in the path).
+const image = 'catthehacker/ubuntu:act-latest';
+const repository = 'tekartik/ci.dart@v1';
+
+Future<void> main(List<String> args) async {
+  var parser = ArgParser()
+    ..addFlag('help', abbr: 'h', negatable: false, help: 'Usage')
+    ..addFlag(
+      'dry-run',
+      abbr: 'n',
+      negatable: false,
+      help: 'Validate and list the jobs, no container',
+    )
+    ..addOption('job', abbr: 'j', help: 'Run one job id only (ubuntu_beta...)')
+    ..addMultiOption('input', abbr: 'i', help: 'workflow_dispatch input k=v')
+    ..addFlag(
+      'local',
+      defaultsTo: true,
+      help: 'Replace $repository by this checkout',
+    );
+  var results = parser.parse(args);
+  if (results['help'] as bool || results.rest.length != 1) {
+    stdout.writeln('Usage: dart run tool/act_run.dart [options] <workflow>\n');
+    stdout.writeln(parser.usage);
+    exit(results.rest.length != 1 ? 1 : 0);
+  }
+
+  // repo_support/tool is run from repo_support, the repository is the parent.
+  var root = normalize(absolute('..'));
+  var workflow = findWorkflow(root, results.rest.first);
+  var act = await findAct();
+  var options = <String>[
+    'workflow_dispatch',
+    '-W',
+    join('.github', 'workflows', workflow),
+    '-P',
+    'ubuntu-latest=$image',
+    '--pull=${await imageMissing()}',
+    '--cache-server-path',
+    join(root, '.dart_tool', 'act_cache'),
+    if (results['local'] as bool) ...[
+      '--local-repository',
+      '$repository=$root',
+    ],
+    if (results['dry-run'] as bool) '-n',
+    if (results['job'] != null) ...['-j', results['job'] as String],
+    for (var input in results['input'] as List<String>) ...['--input', input],
+  ];
+  try {
+    await Shell(workingDirectory: root).run('$act ${shellArguments(options)}');
+  } on ShellException catch (e) {
+    stderr.writeln('act failed: ${e.message}');
+    exit(1);
+  }
+}
+
+/// `act` from the path, or the gh extension.
+Future<String> findAct() async {
+  if (whichSync('act') != null) {
+    return 'act';
+  }
+  var extensions = await Shell(verbose: false).run('gh extension list');
+  if (extensions.outText.contains('nektos/gh-act')) {
+    return 'gh act';
+  }
+  stderr.writeln(
+    'act not found: `gh extension install nektos/gh-act` or install act',
+  );
+  exit(1);
+}
+
+/// Exact file name, `<name>.yml` or the unique file ending with `<name>.yml`.
+String findWorkflow(String root, String name) {
+  var files =
+      Directory(join(root, '.github', 'workflows'))
+          .listSync()
+          .whereType<File>()
+          .map((file) => basename(file.path))
+          .where((file) => file.endsWith('.yml'))
+          .toList()
+        ..sort();
+  var found = files.where((file) => file == name || file == '$name.yml');
+  if (found.isEmpty) {
+    found = files.where((file) => file.endsWith('_$name.yml'));
+  }
+  if (found.length != 1) {
+    stderr.writeln(
+      '${found.isEmpty ? 'No' : 'Several'} workflows matching $name:\n'
+      '  ${(found.isEmpty ? files : found).join('\n  ')}',
+    );
+    exit(1);
+  }
+  return found.first;
+}
+
+/// True if the act image is not pulled yet.
+Future<bool> imageMissing() async {
+  try {
+    await Shell(verbose: false).run('docker image inspect $image');
+    return false;
+  } on ShellException {
+    return true;
+  }
+}
 ```
 
 ## 6. Rollout
