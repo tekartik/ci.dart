@@ -1,0 +1,10 @@
+name: act_pub_get_example
+description: Minimal package for the act example (repo_support/tool/act_example_pub_get.dart).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  path: ">=1.9.1"

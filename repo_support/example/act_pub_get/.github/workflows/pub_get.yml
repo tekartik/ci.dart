@@ -1,0 +1,18 @@
+# Minimal workflow for the act example (repo_support/tool/act_example_pub_get.dart):
+# checkout, dart sdk, pub get.
+#
+# GitHub never runs it: workflows are only read from the .github/workflows
+# folder at the root of the repository.
+name: Pub get
+on:
+  workflow_dispatch:
+
+jobs:
+  pub_get:
+    name: Pub get
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+      - run: dart --version
+      - run: dart pub get
