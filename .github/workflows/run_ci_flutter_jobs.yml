@@ -13,6 +13,13 @@
 #   ci:
 #     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
 #
+# With private git dependencies (git@github.com:...), pass an ssh key:
+#
+#   ci:
+#     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+#     secrets:
+#       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+#
 # The pub get job saves its result (pub cache, .dart_tool, pubspec.lock) in a
 # cache scoped to the current run, the other jobs restore it (running pub get
 # again if the cache entry was evicted) and run with --no-pub-get.
@@ -46,6 +53,12 @@ on:
         type: number
         required: false
         default: 30
+    secrets:
+      SSH_PRIVATE_KEY:
+        description: >-
+          SSH private key for private git dependencies, loaded in an ssh-agent
+          in every job (pub get runs again if the cache entry was evicted).
+        required: false
 
 permissions:
   contents: read
@@ -79,6 +92,7 @@ jobs:
         with:
           flutter-channel: ${{ inputs.channel }}
           cache: ${{ inputs.cache }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - run: flutter --version
       - run: dart run dev_build:run_ci@ --pub-get --recursive
       - name: Save pub get result
@@ -97,6 +111,7 @@ jobs:
         with:
           flutter-channel: ${{ inputs.channel }}
           cache: ${{ inputs.cache }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           # The pub cache comes from the pub get result.
           pub-cache: false
       - name: Restore pub get result
@@ -122,6 +137,7 @@ jobs:
         with:
           flutter-channel: ${{ inputs.channel }}
           cache: ${{ inputs.cache }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           # The pub cache comes from the pub get result.
           pub-cache: false
       - name: Restore pub get result
@@ -147,6 +163,7 @@ jobs:
         with:
           flutter-channel: ${{ inputs.channel }}
           cache: ${{ inputs.cache }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           # The pub cache comes from the pub get result.
           pub-cache: false
       - name: Restore pub get result
@@ -172,6 +189,7 @@ jobs:
         with:
           flutter-channel: ${{ inputs.channel }}
           cache: ${{ inputs.cache }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           # The pub cache comes from the pub get result.
           pub-cache: false
       - name: Restore pub get result

@@ -32,6 +32,11 @@ inputs:
     required: false
     default: ${{ github.token }}
 
+  ssh-private-key:
+    description: 'SSH private key loaded in an ssh-agent before pub get (private git dependencies)'
+    required: false
+    default: ''
+
 runs:
   using: 'composite'
   steps:
@@ -39,6 +44,12 @@ runs:
       uses: actions/checkout@v7
       with:
         token: ${{ inputs.checkout-token }}
+
+    - name: Setup ssh agent
+      if: inputs.ssh-private-key != ''
+      uses: webfactory/ssh-agent@v0.10.0
+      with:
+        ssh-private-key: ${{ inputs.ssh-private-key }}
 
     - name: Setup Flutter
       uses: subosito/flutter-action@v2

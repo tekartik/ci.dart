@@ -740,7 +740,9 @@ Future<bool> imageMissing() async {
 - The flutter analyze jobs run `pub get` + `pub downgrade`; the old action
   ran `pub downgrade` + `pub upgrade`. Without a committed `pubspec.lock` the
   two are the same; with one, `pub upgrade` is the honest "latest" leg.
-- Private git dependencies: the reusable workflows have no hook to configure
-  git credentials before pub get. A `secrets: git-token` on `workflow_call`
-  running `git config --global url."https://x-access-token:$TOKEN@github.com/".insteadOf "https://github.com/"`
-  would cover it (section 4, C is where to test it).
+- Private git dependencies: `run_ci_flutter_jobs.yml` takes an optional
+  `SSH_PRIVATE_KEY` secret (ssh-agent in `setup_ci_flutter`, for
+  `git@github.com:` urls). The other reusable workflows have no hook yet; the
+  same secret, or a `secrets: git-token` on `workflow_call` running
+  `git config --global url."https://x-access-token:$TOKEN@github.com/".insteadOf "https://github.com/"`
+  for https urls, would cover them (section 4, C is where to test it).
