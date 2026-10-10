@@ -7,7 +7,12 @@ on:
     paths-ignore: ['**.md'] # Not on doc only changes
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0'  # every sunday at midnight
+    - cron: '0 0 28 * *'  # at midnight, on day 28 of the month
+
+# A new run on the same ref cancels the older one.
+concurrency:
+  group: ${{ github.workflow_ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
