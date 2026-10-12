@@ -1,0 +1,66 @@
+# Reusable workflow: run the platform specific part of ci (vm test only) for
+# the runners where analyze, format, web/node tests and the web build would
+# only repeat what the ubuntu run_ci_dart_jobs.yml jobs already cover
+# (windows, macos).
+#
+# Usage (from another workflow, next to run_ci_dart_jobs.yml on ubuntu):
+#
+# jobs:
+#   windows_stable:
+#     name: windows stable
+#     uses: tekartik/ci.dart/.github/workflows/run_ci_dart_platform_jobs.yml@v1
+#     with:
+#       runs-on: windows-latest
+#
+# A single job (pub get then vm test), there is nothing to share with other
+# jobs. No build job: run_ci --build on a dart package only runs webdev build
+# (web, platform independent), add one here once run_ci builds for the
+# desktop.
+#
+# A new run of the calling workflow on the same ref cancels the older one.
+name: Run CI dart platform jobs
+on:
+  workflow_call:
+    inputs:
+      sdk:
+        description: 'Dart sdk channel or version (stable, beta, dev, 3.13.x...)'
+        type: string
+        required: false
+        default: 'stable'
+      runs-on:
+        description: 'Runner (windows-latest, macos-latest, ubuntu-latest)'
+        type: string
+        required: false
+        default: 'windows-latest'
+      timeout-minutes:
+        description: 'Timeout of each job in minutes'
+        type: number
+        required: false
+        default: 30
+
+permissions:
+  contents: read
+
+# The calling workflow (workflow_ref includes the ref) and the inputs are part
+# of the group so that the calls for each os/sdk do not cancel each other.
+concurrency:
+  group: run-ci-dart-platform-jobs-${{ github.workflow_ref }}-${{ inputs.runs-on }}-${{ inputs.sdk }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: Test (vm)
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - run: dart --version
+      - run: dart run dev_build:run_ci@ --pub-get --recursive
+      - run: dart run dev_build:run_ci@ --vm-test --no-pub-get --recursive

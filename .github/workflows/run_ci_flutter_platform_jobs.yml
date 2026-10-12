@@ -1,0 +1,87 @@
+# Reusable workflow: run the platform specific part of ci (vm test only) for
+# the runners where analyze, format, web tests and the web build would only
+# repeat what the ubuntu run_ci_flutter_jobs.yml jobs already cover (windows,
+# macos).
+#
+# Usage (from another workflow, next to run_ci_flutter_jobs.yml on ubuntu):
+#
+# jobs:
+#   windows_stable:
+#     name: windows stable
+#     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_platform_jobs.yml@v1
+#     with:
+#       runs-on: windows-latest
+#
+# With private git dependencies (git@github.com:...), pass an ssh key:
+#
+#     secrets:
+#       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+#
+# A single job (pub get then vm test: flutter test for flutter packages,
+# dart test -p vm for dart packages), there is nothing to share with other
+# jobs. No build job: run_ci --build on a flutter package only runs
+# flutter build web (platform independent), add one here once run_ci builds
+# for the desktop.
+#
+# A new run of the calling workflow on the same ref cancels the older one.
+name: Run CI flutter platform jobs
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: 'Flutter channel (stable, beta, master)'
+        type: string
+        required: false
+        default: 'stable'
+      runs-on:
+        description: 'Runner (windows-latest, macos-latest, ubuntu-latest)'
+        type: string
+        required: false
+        default: 'windows-latest'
+      cache:
+        description: >-
+          Cache the flutter sdk (~2GB per os/channel) and the pub cache across
+          runs. The repository cache is limited to 10GB, set it to false if
+          many os/channel are used.
+        type: boolean
+        required: false
+        default: true
+      timeout-minutes:
+        description: 'Timeout of each job in minutes'
+        type: number
+        required: false
+        default: 30
+    secrets:
+      SSH_PRIVATE_KEY:
+        description: >-
+          SSH private key for private git dependencies, loaded in an ssh-agent
+          before pub get.
+        required: false
+
+permissions:
+  contents: read
+
+# The calling workflow (workflow_ref includes the ref) and the inputs are part
+# of the group so that the calls for each os/channel do not cancel each other.
+concurrency:
+  group: run-ci-flutter-platform-jobs-${{ github.workflow_ref }}-${{ inputs.runs-on }}-${{ inputs.channel }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: Test (vm)
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
+        with:
+          flutter-channel: ${{ inputs.channel }}
+          cache: ${{ inputs.cache }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - run: flutter --version
+      - run: dart run dev_build:run_ci@ --pub-get --recursive
+      - run: dart run dev_build:run_ci@ --vm-test --no-pub-get --recursive
