@@ -2,7 +2,54 @@
 
 CI helper for flutter dart projects
 
+## Default for a public dart repository
+
+Copy these two workflows, as they are, from this repository's
+[`.github/workflows`](.github/workflows) into the `.github/workflows` folder
+of the repository, and remove its older CI workflows (an action based
+`run_ci.yml`, a `run_ci_downgrade_analyze.yml`...):
+
+| Workflow | Runs |
+|----------|------|
+| [`run_ci_workflow_dart_all_platform.yml`](.github/workflows/run_ci_workflow_dart_all_platform.yml) | ubuntu stable, beta and dev: pub get, then analyze, format, test and build as separate jobs ([`run_ci_dart_jobs.yml`](.github/workflows/run_ci_dart_jobs.yml)); windows and macos stable: only the platform specific part, pub get and vm test ([`run_ci_dart_platform_jobs.yml`](.github/workflows/run_ci_dart_platform_jobs.yml)) |
+| [`run_ci_workflow_flutter_analyze.yml`](.github/workflows/run_ci_workflow_flutter_analyze.yml) | analyze after pub get and after pub downgrade, with `--no-override` ([`run_ci_flutter_analyze_jobs.yml`](.github/workflows/run_ci_flutter_analyze_jobs.yml)): the published constraints are checked at both ends, `pubspec_overrides.yaml` files are ignored. The flutter sdk analyzes pure dart packages too |
+
+Both run `dart run dev_build:run_ci@ ... --recursive`, so every package of
+the repository is covered (exclude a folder with a
+`dev_build_run_ci_config.yaml`). Triggers: a push on any branch (not on
+tags, not on doc only changes), `workflow_dispatch`, every sunday. The
+reusable workflows own the per job timeout (30 minutes) and a concurrency
+group cancelling an older run of the same ref.
+
+Example: [tekartik/firebase_functions.dart](https://github.com/tekartik/firebase_functions.dart/tree/master/.github/workflows).
+
+Notes when migrating from the action based workflows below:
+
+- beta and dev really run beta and dev: the actions read the channel from
+  `matrix.*-channel` instead of their input, so a matrix entry `beta` or
+  `dev` silently ran stable. Expect new findings there (newer lints, newer
+  formatter).
+- Windows and macos no longer repeat analyze, format and the web tests and
+  build of ubuntu: same coverage of what differs per platform, fewer
+  minutes.
+- Each job is its own status in the UI. A pub get result is handed to the
+  next jobs through the actions cache; when the entry is evicted, the job
+  runs pub get again (a `::notice::` in the log), it is not a failure.
+- "Re-run failed jobs" reuses the pub get of the first attempt: a fix pushed
+  meanwhile to a git dependency is not picked up, re-run all jobs instead.
+- `@v1` follows the releases of ci.dart (see [Releasing](#releasing)), pin a
+  version tag (`@v1.0.9`) to stay on one.
+
+A flutter repository has the twin
+[`run_ci_workflow_flutter_all_platform.yml`](.github/workflows/run_ci_workflow_flutter_all_platform.yml)
+(with the same analyze workflow). The other templates (private
+repositories, small experiments) are in
+[doc/workflow_templates.md](doc/workflow_templates.md).
+
 ## Reusable CI Actions
+
+Older, action based workflows (one job per os/sdk, the whole `run_ci` in
+it). Prefer the reusable workflows above for a public repository.
 
 ### Dart CI
 

@@ -9,7 +9,7 @@ for how the templates get tested.
 | Repository | Template                                  | Runners                                                  | Cost driver                                   |
 |------------|-------------------------------------------|----------------------------------------------------------|-----------------------------------------------|
 | private    | `private_dart.yml`, `private_flutter.yml` | ubuntu stable, one job                                   | every job is billed, rounded up to the minute |
-| public     | `public_dart.yml`                         | ubuntu stable/beta/dev, windows stable, macos stable     | free, only wall time and cache size matter    |
+| public     | `public_dart.yml` (default)               | ubuntu stable/beta/dev, windows/macos stable vm test only, analyze (pub get + pub downgrade) on ubuntu | free, only wall time and cache size matter    |
 | public     | `public_flutter.yml`                      | analyze (pub get + pub downgrade) on ubuntu, then ubuntu stable/beta, windows stable, macos stable | same |
 | public, experiment | `public_dart_small.yml`, `public_flutter_small.yml` | ubuntu stable, jobs split                     | same, less noise                              |
 
@@ -185,10 +185,25 @@ of the repository itself). See the open questions of the testing document.
 
 ## Public repositories
 
-### `public_dart.yml` (today, = ci.dart `run_ci_workflow_dart_all.yml`)
+### `public_dart.yml` (the default, 2026-10-13)
+
+The two ci.dart workflows, copied as they are into the repository (see the
+README, *Default for a public dart repository*):
+
+- `run_ci_workflow_dart_all_platform.yml`: ubuntu stable, beta and dev run
+  the whole split run (`run_ci_dart_jobs.yml`: pub get, then analyze,
+  format, test, build); windows and macos stable run only the platform
+  specific part (`run_ci_dart_platform_jobs.yml`: pub get and vm test, in
+  one job), since analyze, format, the web tests and the web build would
+  only repeat ubuntu.
+- `run_ci_workflow_flutter_analyze.yml`: analyze after pub get and after pub
+  downgrade with `--no-override` (`run_ci_flutter_analyze_jobs.yml`), the
+  published constraints checked at both ends. The flutter sdk analyzes pure
+  dart packages too.
 
 ```yaml
-name: Run CI dart
+# .github/workflows/run_ci_workflow_dart_all_platform.yml
+name: Run CI workflow dart all platform
 on:
   push:
     branches: ['**'] # Not on tag pushes
@@ -198,7 +213,7 @@ on:
     - cron: '0 0 * * 0'  # every sunday at midnight
 
 # One job per os/sdk (no matrix) so that each one is displayed as its own
-# group (pub get then analyze, format, test, build) in the workflow graph.
+# group in the workflow graph.
 jobs:
   ubuntu_stable:
     name: ubuntu stable
@@ -223,18 +238,40 @@ jobs:
 
   windows_stable:
     name: windows stable
-    uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1
+    uses: tekartik/ci.dart/.github/workflows/run_ci_dart_platform_jobs.yml@v1
     with:
       sdk: stable
       runs-on: windows-latest
 
   macos_stable:
     name: macos stable
-    uses: tekartik/ci.dart/.github/workflows/run_ci_dart_jobs.yml@v1
+    uses: tekartik/ci.dart/.github/workflows/run_ci_dart_platform_jobs.yml@v1
     with:
       sdk: stable
       runs-on: macos-latest
 ```
+
+```yaml
+# .github/workflows/run_ci_workflow_flutter_analyze.yml
+name: Run CI workflow flutter analyze
+on:
+  push:
+    branches: ['**'] # Not on tag pushes
+    paths-ignore: ['**.md'] # Not on doc only changes
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # every sunday at midnight
+
+jobs:
+  ci:
+    name: Run ci
+    uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_analyze_jobs.yml@v1
+```
+
+First consumer: tekartik/firebase_functions.dart (2026-10-13). The previous
+public dart template, `run_ci_workflow_dart_all.yml` (the whole split run on
+windows and macos too), still works; it costs more wall time for no extra
+coverage.
 
 ### `public_flutter.yml` (today, one file: analyze + all)
 
@@ -360,9 +397,12 @@ few minutes.
 
 ## Migrating an existing consumer
 
-- Action based (`run_ci_dart@v1` with a matrix): replace the file with
-  `public_dart.yml`. Matrix entries `beta`/`dev` were silently running
-  stable with the action, expect new failures on the beta/dev groups.
+- Action based (`run_ci_dart@v1` with a matrix), and a separate downgrade
+  analyze workflow: replace both with the two files of `public_dart.yml`.
+  Matrix entries `beta`/`dev` were silently running stable with the action,
+  expect new failures on the beta/dev groups (example: the 3.14 beta
+  analyzer reports `unawaited_futures` on a `FutureOr`, fixed in
+  firebase_functions.dart before its migration).
 - `run_ci_flutter_analyze@v1`: replace with the `analyze` job of
   `public_flutter.yml` (the downgrade leg is now a separate job chain).
 - Private repositories with a matrix: keep only the ubuntu stable entry and
