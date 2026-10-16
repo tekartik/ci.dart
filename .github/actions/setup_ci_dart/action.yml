@@ -38,7 +38,7 @@ runs:
     - name: Setup Dart
       uses: dart-lang/setup-dart@v1
       with:
-        sdk: ${{ matrix.dart-channel }}
+        sdk: ${{ inputs.dart-channel }}
         # Workaround for https://github.com/dart-lang/setup-dart/issues/198:
         # setup-dart fails to register its analyzer problem matcher when used
         # inside a composite action. Disabling the matcher only skips GitHub

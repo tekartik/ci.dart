@@ -63,9 +63,8 @@ jobs:
 ```
 
 The action checks out, installs dart stable, activates `dev_build` and runs
-`dev_build:run_ci --recursive`. Its `dart-channel` input is currently
-ignored (it reads `matrix.dart-channel`), which is harmless here since
-stable is the default.
+`dev_build:run_ci --recursive`. Its `dart-channel` input defaults to
+stable.
 
 ### `private_flutter.yml` (today)
 

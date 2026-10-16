@@ -34,7 +34,7 @@ runs:
       uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
       with:
         checkout-token: ${{ inputs.checkout-token }}
-        flutter-channel: ${{ matrix.flutter-channel }}
+        flutter-channel: ${{ inputs.flutter-channel }}
         cache: ${{ inputs.cache }}
         cache-key-prefix: ${{ inputs.cache-key-prefix }}
     - name: Setup dev_build
