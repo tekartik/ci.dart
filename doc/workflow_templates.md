@@ -98,7 +98,7 @@ same job rather than a second job:
 
 ```yaml
       - name: Downgrade and analyze
-        run: dart pub global run dev_build:run_ci --pub-downgrade --analyze --no-override --recursive
+        run: dart run dev_build:run_ci@ --pub-downgrade --analyze --no-override --recursive
 ```
 
 ### Single job reusable workflows (proposed)

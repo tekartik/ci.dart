@@ -92,7 +92,7 @@ The `run_ci_dart` action:
 
 - Checks out the repository
 - Sets up the Dart SDK for the specified channel/version (`stable`, `beta`, `dev`, or a specific version like `3.24.x`)
-- Activates `dev_build` and runs `dart pub global run dev_build:run_ci --recursive`
+- Runs `dart run dev_build:run_ci@ --recursive` (latest `dev_build` from pub.dev, no global activation)
 
 Optional inputs:
 
@@ -144,7 +144,7 @@ The `run_ci_flutter` action:
 - Checks out the repository
 - Sets up the Flutter SDK for the specified channel/version (`stable`, `beta`, `master`, or a specific version like
   `3.24.x`)
-- Activates `dev_build` and runs `dart pub global run dev_build:run_ci --recursive`
+- Runs `dart run dev_build:run_ci@ --recursive` (latest `dev_build` from pub.dev, no global activation)
 
 Optional inputs:
 
