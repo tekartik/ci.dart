@@ -39,6 +39,14 @@ runs:
       uses: dart-lang/setup-dart@v1
       with:
         sdk: ${{ inputs.dart-channel }}
+        # Workaround for https://github.com/dart-lang/setup-dart/issues/198:
+        # setup-dart fails to register its analyzer problem matcher when used
+        # inside a composite action (it looks for dart-analyzer.json in this
+        # action's folder: "Could not find file .../setup_ci_dart_latest/
+        # dart-analyzer.json"), which fails the step and the whole job.
+        # Disabling the matcher only skips GitHub annotations; analyzer output
+        # is unchanged. Same as setup_ci_dart, remove both once fixed upstream.
+        problem-matcher: false
 
     - name: Cache pub
       if: inputs.cache == 'true'

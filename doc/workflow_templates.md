@@ -8,9 +8,9 @@ for how the templates get tested.
 
 | Repository | Template                                  | Runners                                                  | Cost driver                                   |
 |------------|-------------------------------------------|----------------------------------------------------------|-----------------------------------------------|
-| private    | `private_dart.yml`, `private_flutter.yml` | ubuntu stable, one job                                   | every job is billed, rounded up to the minute |
+| private    | `run_ci_workflow_flutter_default.yml` (flutter default, 2026-10-29), `private_dart.yml` | ubuntu stable, jobs split (flutter), one job (dart) | every job is billed, rounded up to the minute |
 | public     | `public_dart.yml` (default)               | ubuntu stable/beta/dev, windows/macos stable vm test only, analyze (pub get + pub downgrade) on ubuntu | free, only wall time and cache size matter    |
-| public     | `public_flutter.yml`                      | analyze (pub get + pub downgrade) on ubuntu, then ubuntu stable/beta, windows stable, macos stable | same |
+| public     | `public_flutter.yml` (default)            | ubuntu stable/beta, windows/macos stable vm test only, analyze (pub get + pub downgrade) on ubuntu | same |
 | public, experiment | `public_dart_small.yml`, `public_flutter_small.yml` | ubuntu stable, jobs split                     | same, less noise                              |
 
 Why one job for private repositories: the jobs workflows split a run into
@@ -66,9 +66,21 @@ The action checks out, installs dart stable, activates `dev_build` and runs
 `dev_build:run_ci --recursive`. Its `dart-channel` input defaults to
 stable.
 
-### `private_flutter.yml` (today)
+### `run_ci_workflow_flutter_default.yml` (the private flutter default, 2026-10-29)
 
-Same file with the flutter action:
+A private flutter repository (tekaly/festenaoprv for example) copies the
+ci.dart `run_ci_workflow_flutter_default.yml` as it is: ubuntu stable,
+`run_ci_flutter_jobs.yml` (pub get, analyze, format, test, build as separate
+jobs), a monthly schedule (day 28), a concurrency group cancelling an older
+run of the same ref. The split costs more billed minutes than one job (each
+job is rounded up to the minute) but gives one status per step; while the
+private Actions credit is out, its `push` trigger is commented and it runs by
+hand (`workflow_dispatch`). The one job `private_flutter.yml` below is the
+cheaper alternative.
+
+### `private_flutter.yml` (one job, cheaper)
+
+Same file as `private_dart.yml` with the flutter action:
 
 ```yaml
 name: Run CI
@@ -272,7 +284,25 @@ public dart template, `run_ci_workflow_dart_all.yml` (the whole split run on
 windows and macos too), still works; it costs more wall time for no extra
 coverage.
 
-### `public_flutter.yml` (today, one file: analyze + all)
+### `public_flutter.yml` (the default, 2026-10-29)
+
+The two ci.dart workflows, copied as they are into the repository (see the
+README, *Default for a public flutter repository*), the twin of
+`public_dart.yml`:
+
+- `run_ci_workflow_flutter_all_platform.yml`: ubuntu stable and beta run the
+  whole split run (`run_ci_flutter_jobs.yml`: pub get, then analyze, format,
+  test, build for the web); windows and macos stable run only the platform
+  specific part (`run_ci_flutter_platform_jobs.yml`: pub get and vm test,
+  in one job).
+- `run_ci_workflow_flutter_analyze.yml`: the same analyze workflow as for a
+  dart repository (pub get and pub downgrade with `--no-override`).
+
+No `actions/setup-java` (only web builds), no native setup (`package:sqlite3`
+3.x bundles its library). Examples: tekartik/app_flutter_utils.dart,
+tekartik/common_flutter.dart.
+
+### `public_flutter_single_file.yml` (older, one file: analyze + all)
 
 Combines ci.dart `run_ci_workflow_flutter_analyze.yml` and
 `run_ci_workflow_flutter_all.yml` in one workflow so a repository has a

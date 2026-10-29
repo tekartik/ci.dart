@@ -44,6 +44,7 @@ runs:
         # inside a composite action. Disabling the matcher only skips GitHub
         # annotations; analyzer output is unchanged.
         # Same technique as https://github.com/leoafarias/fvm/pull/1071
+        # (also in setup_ci_dart_latest, remove both once fixed upstream).
         problem-matcher: false
 
     - name: Cache pub

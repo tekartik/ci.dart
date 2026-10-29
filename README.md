@@ -40,11 +40,51 @@ Notes when migrating from the action based workflows below:
 - `@v1` follows the releases of ci.dart (see [Releasing](#releasing)), pin a
   version tag (`@v1.0.9`) to stay on one.
 
-A flutter repository has the twin
-[`run_ci_workflow_flutter_all_platform.yml`](.github/workflows/run_ci_workflow_flutter_all_platform.yml)
-(with the same analyze workflow). The other templates (private
-repositories, small experiments) are in
+The other templates (private repositories, small experiments) are in
 [doc/workflow_templates.md](doc/workflow_templates.md).
+
+## Default for a public flutter repository
+
+The current best CI for a public flutter repository (2026-10-29): copy
+these two workflows, as they are, from this repository's
+[`.github/workflows`](.github/workflows) into the `.github/workflows` folder
+of the repository, and remove its older CI workflows (an action based
+`run_ci_flutter.yml` / `run_ci.yml`, a `run_ci_flutter_downgrade_analyze.yml`):
+
+| Workflow | Runs |
+|----------|------|
+| [`run_ci_workflow_flutter_all_platform.yml`](.github/workflows/run_ci_workflow_flutter_all_platform.yml) | ubuntu stable and beta: pub get, then analyze, format, test and build (`flutter build web` for the flutter packages) as separate jobs ([`run_ci_flutter_jobs.yml`](.github/workflows/run_ci_flutter_jobs.yml)); windows and macos stable: only the platform specific part, pub get and vm test (`flutter test`, `dart test -p vm` for the pure dart packages) ([`run_ci_flutter_platform_jobs.yml`](.github/workflows/run_ci_flutter_platform_jobs.yml)) |
+| [`run_ci_workflow_flutter_analyze.yml`](.github/workflows/run_ci_workflow_flutter_analyze.yml) | analyze after pub get and after pub downgrade, with `--no-override` ([`run_ci_flutter_analyze_jobs.yml`](.github/workflows/run_ci_flutter_analyze_jobs.yml)), the same file as for a dart repository |
+
+Same as for a dart repository: `dart run dev_build:run_ci@ ... --recursive`
+covers every package (a `dev_build_run_ci_config.yaml` excludes a folder),
+same triggers, timeouts and concurrency, same notes when migrating.
+
+For a flutter repository in particular:
+
+- No `actions/setup-java` step: the build job only builds for the web, java
+  (and the android sdk) is not needed. Dependabot then has no
+  `actions/setup-java` to bump in the repository.
+- No native setup step either (the old `setup_env.dart` installing
+  `libsqlite3-dev`): `package:sqlite3` 3.x bundles its native library.
+- The flutter sdk and the pub cache are cached per os and channel (about
+  2GB each, `cache` input of the reusable workflows).
+
+Examples: [tekartik/app_flutter_utils.dart](https://github.com/tekartik/app_flutter_utils.dart/tree/master/.github/workflows),
+[tekartik/common_flutter.dart](https://github.com/tekartik/common_flutter.dart/tree/main/.github/workflows).
+
+## Default for a private flutter repository
+
+A private repository (tekaly/festenaoprv for example) copies the single
+[`run_ci_workflow_flutter_default.yml`](.github/workflows/run_ci_workflow_flutter_default.yml):
+ubuntu stable only, run ci as separate jobs (pub get, analyze, format, test,
+build: [`run_ci_flutter_jobs.yml`](.github/workflows/run_ci_flutter_jobs.yml)),
+a push on any branch, `workflow_dispatch`, and a monthly schedule (day 28)
+instead of a weekly one. No beta, no windows nor macos, no downgrade
+analyze: every minute of a private repository is billed (a job is rounded up
+to the minute, windows counts about 2x, macos about 10x). While the private
+Actions credit is out, comment its `push` trigger and run it by hand
+(`workflow_dispatch`).
 
 ## Reusable CI Actions
 
