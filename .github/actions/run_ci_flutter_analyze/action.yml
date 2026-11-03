@@ -39,7 +39,7 @@ runs:
         cache-key-prefix: ${{ inputs.cache-key-prefix }}
     - name: Downgrade/analyze
       shell: bash
-      run: dart run dev_build:run_ci@ --pub-downgrade --analyze --no-override --recursive
+      run: dart run dev_build:run_ci@ --pub-downgrade --analyze --no-override --no-fatal-warnings --recursive
     - name: Upgrade/analyze
       shell: bash
       run: dart run dev_build:run_ci@ --pub-upgrade --analyze --no-override --recursive

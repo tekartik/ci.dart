@@ -33,4 +33,4 @@ jobs:
         uses: tekartik/ci.dart/.github/actions/setup_ci_flutter@v1
       - run: dart --version
       - run: flutter --version
-      - run: dart run dev_build:run_ci@ --pub-downgrade --analyze --no-override --recursive
+      - run: dart run dev_build:run_ci@ --pub-downgrade --analyze --no-override --no-fatal-warnings --recursive

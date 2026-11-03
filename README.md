@@ -12,7 +12,7 @@ of the repository, and remove its older CI workflows (an action based
 | Workflow | Runs |
 |----------|------|
 | [`run_ci_workflow_dart_all_platform.yml`](.github/workflows/run_ci_workflow_dart_all_platform.yml) | ubuntu stable, beta and dev: pub get, then analyze, format, test and build as separate jobs ([`run_ci_dart_jobs.yml`](.github/workflows/run_ci_dart_jobs.yml)); windows and macos stable: only the platform specific part, pub get and vm test ([`run_ci_dart_platform_jobs.yml`](.github/workflows/run_ci_dart_platform_jobs.yml)) |
-| [`run_ci_workflow_flutter_analyze.yml`](.github/workflows/run_ci_workflow_flutter_analyze.yml) | analyze after pub get and after pub downgrade, with `--no-override` ([`run_ci_flutter_analyze_jobs.yml`](.github/workflows/run_ci_flutter_analyze_jobs.yml)): the published constraints are checked at both ends, `pubspec_overrides.yaml` files are ignored. The flutter sdk analyzes pure dart packages too |
+| [`run_ci_workflow_flutter_analyze.yml`](.github/workflows/run_ci_workflow_flutter_analyze.yml) | analyze after pub get and after pub downgrade, with `--no-override` ([`run_ci_flutter_analyze_jobs.yml`](.github/workflows/run_ci_flutter_analyze_jobs.yml)): the published constraints are checked at both ends (after the downgrade, analyze fails on errors only: `--no-fatal-warnings`), `pubspec_overrides.yaml` files are ignored. The flutter sdk analyzes pure dart packages too |
 
 Both run `dart run dev_build:run_ci@ ... --recursive`, so every package of
 the repository is covered (exclude a folder with a
@@ -228,7 +228,7 @@ The `run_ci_flutter_analyze` action:
 - Checks out the repository
 - Sets up the Flutter SDK for the specified channel/version
 - Activates `dev_build`
-- Runs `pub downgrade` then `analyze` recursively
+- Runs `pub downgrade` then `analyze` recursively (errors only, `--no-fatal-warnings`)
 - Runs `pub upgrade` then `analyze` recursively
 
 Optional inputs:

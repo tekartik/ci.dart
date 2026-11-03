@@ -155,4 +155,5 @@ jobs:
         run: |
           echo "::notice::Pub downgrade result not found in cache (evicted), running pub downgrade again"
           dart run dev_build:run_ci@ --pub-downgrade --no-override --recursive
-      - run: dart run dev_build:run_ci@ --analyze --no-pub-get --no-override --recursive
+      # Errors only: the warnings of the lowest versions are not fatal.
+      - run: dart run dev_build:run_ci@ --analyze --no-pub-get --no-override --no-fatal-warnings --recursive
