@@ -1,6 +1,6 @@
 name: ci_repo_support
 description: Ci repo (tools)
-version: 1.0.10
+version: 1.0.11
 publish_to: none
 
 environment:

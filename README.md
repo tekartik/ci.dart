@@ -67,6 +67,11 @@ For a flutter repository in particular:
   `actions/setup-java` to bump in the repository.
 - No native setup step either (the old `setup_env.dart` installing
   `libsqlite3-dev`): `package:sqlite3` 3.x bundles its native library.
+- Tests needing a native library on linux: pass the tekartik_ci setup
+  executables (`ci/bin`) to the ubuntu jobs, run before the tests, e.g.
+  `tekartik-ci-setup: setup_gtk3lib` for the native build hooks of
+  `window_manager` >= 0.6.0 (see
+  [tekartik/app_flutter_utils.dart](https://github.com/tekartik/app_flutter_utils.dart/tree/master/.github/workflows)).
 - The flutter sdk and the pub cache are cached per os and channel (about
   2GB each, `cache` input of the reusable workflows).
 

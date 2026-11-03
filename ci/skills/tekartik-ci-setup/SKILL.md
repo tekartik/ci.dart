@@ -39,7 +39,8 @@ half of the repo is the set of reusable composite GitHub actions under
   ```
 * Public entry points (there are only four):
   - `package:tekartik_ci/setup_ci_github.dart` — `sudoSetupSqlite3Lib()`,
-    `sudoSetupPortaudioLib()`, `sudoSetupAlsaLib()`.
+    `sudoSetupPortaudioLib()`, `sudoSetupAlsaLib()`, `sudoSetupGtk3Lib()`,
+    and `sudoAptGetInstall(packages)` under the last one.
   - `package:tekartik_ci/ci_github.dart` — `bool get runningInGithubActions`.
   - `package:tekartik_ci/ci.dart` — empty placeholder, nothing to import.
   - `package:tekartik_ci/ci_flutter.dart` — `setup()`, `generate()`,
@@ -53,9 +54,18 @@ half of the repo is the set of reusable composite GitHub actions under
   Mapping: `libsqlite3-dev` (fixes `Failed to load dynamic library
   'libsqlite3.so'`, i.e. `sqlite3`/`sqflite_common_ffi`), `portaudio19-dev`
   (`libportaudio.so`), `libasound2-dev` (`libasound.so`, needed by
-  `flutter_soloud` and `flutter_sound`).
+  `flutter_soloud` and `flutter_sound`), `libgtk-3-dev libx11-dev
+  libxi-dev` (`sudoSetupGtk3Lib`: `pkg-config --cflags gtk+-3.0 x11 xi
+  failed` from the nativeapi build hook that `flutter test` runs, i.e.
+  `window_manager` >= 0.6.0).
+* `sudoAptGetInstall(packages)` (`sudoSetupGtk3Lib` uses it, new helpers
+  should too) rejects anything but a package name, skips the packages
+  already installed (no sudo at all when none is missing) and runs apt-get
+  non interactive, waiting for the dpkg lock and retrying the downloads.
 * Matching executables declared in `pubspec.yaml`: `setup_sqlite3lib`,
-  `setup_portaudiolib`, `setup_alsalib`. Each `bin/*.dart` is a two-line
+  `setup_portaudiolib`, `setup_alsalib`, `setup_gtk3lib`. The reusable
+  `run_ci_flutter_jobs.yml` runs them before its tests when listed in its
+  `tekartik-ci-setup` input (`tekartik-ci-setup: setup_gtk3lib`). Each `bin/*.dart` is a two-line
   `main` awaiting the corresponding function — copy that shape for a new
   library.
 * `runningInGithubActions` is `Platform.environment['GITHUB_ACTIONS'] ==

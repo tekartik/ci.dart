@@ -30,4 +30,5 @@ executables:
   setup_sqlite3lib:
   setup_portaudiolib:
   setup_alsalib:
+  setup_gtk3lib:
 resolution: workspace

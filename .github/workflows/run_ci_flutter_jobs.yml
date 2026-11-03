@@ -20,6 +20,15 @@
 #     secrets:
 #       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 #
+# Native libraries the tests need (e.g. GTK for the native build hooks of
+# window_manager >= 0.6.0), installed by the tekartik_ci setup executables
+# (ci/bin, no-op off linux) before the tests:
+#
+#   ci:
+#     uses: tekartik/ci.dart/.github/workflows/run_ci_flutter_jobs.yml@v1
+#     with:
+#       tekartik-ci-setup: setup_gtk3lib
+#
 # The pub get job saves its result (pub cache, .dart_tool, pubspec.lock) in a
 # cache scoped to the current run, the other jobs restore it (running pub get
 # again if the cache entry was evicted) and run with --no-pub-get.
@@ -53,6 +62,15 @@ on:
         type: number
         required: false
         default: 30
+      tekartik-ci-setup:
+        description: >-
+          Space separated tekartik_ci setup executables (ci/bin of this
+          repository, e.g. 'setup_gtk3lib', 'setup_sqlite3lib') run before
+          the tests, none by default. They apt-get install native libraries on
+          linux and do nothing elsewhere.
+        type: string
+        required: false
+        default: ''
     secrets:
       SSH_PRIVATE_KEY:
         description: >-
@@ -177,6 +195,23 @@ jobs:
         run: |
           echo "::notice::Pub get result not found in cache (evicted), running pub get again"
           dart run dev_build:run_ci@ --pub-get --recursive
+      - name: Setup (tekartik_ci)
+        if: inputs.tekartik-ci-setup != ''
+        env:
+          # Through the environment, never expanded in the script itself.
+          TEKARTIK_CI_SETUP: ${{ inputs.tekartik-ci-setup }}
+        run: |
+          read -ra setups <<< "$TEKARTIK_CI_SETUP"
+          for setup in "${setups[@]}"; do
+            if [[ ! "$setup" =~ ^setup_[a-z0-9_]+$ ]]; then
+              echo "::error::Invalid tekartik_ci setup executable: '$setup'"
+              exit 1
+            fi
+          done
+          dart pub global activate --source git https://github.com/tekartik/ci.dart --git-path ci
+          for setup in "${setups[@]}"; do
+            dart pub global run "tekartik_ci:$setup"
+          done
       - run: dart run dev_build:run_ci@ --test --no-pub-get --recursive
 
   build:
