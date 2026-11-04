@@ -204,9 +204,9 @@ README, *Default for a public dart repository*):
 - `run_ci_workflow_dart_all_platform.yml`: ubuntu stable, beta and dev run
   the whole split run (`run_ci_dart_jobs.yml`: pub get, then analyze,
   format, test, build); windows and macos stable run only the platform
-  specific part (`run_ci_dart_platform_jobs.yml`: pub get and vm test, in
-  one job), since analyze, format, the web tests and the web build would
-  only repeat ubuntu.
+  specific part (`run_ci_dart_platform_jobs.yml`: vm test, and the builds
+  but the web one, none for now), since analyze, format, the web tests and
+  the web build would only repeat ubuntu.
 - `run_ci_workflow_flutter_analyze.yml`: analyze after pub get and after pub
   downgrade with `--no-override` (`run_ci_flutter_analyze_jobs.yml`), the
   published constraints checked at both ends. The flutter sdk analyzes pure
@@ -293,8 +293,8 @@ README, *Default for a public flutter repository*), the twin of
 - `run_ci_workflow_flutter_all_platform.yml`: ubuntu stable and beta run the
   whole split run (`run_ci_flutter_jobs.yml`: pub get, then analyze, format,
   test, build for the web); windows and macos stable run only the platform
-  specific part (`run_ci_flutter_platform_jobs.yml`: pub get and vm test,
-  in one job).
+  specific part (`run_ci_flutter_platform_jobs.yml`: vm test, and the
+  builds but the web one, none for now).
 - `run_ci_workflow_flutter_analyze.yml`: the same analyze workflow as for a
   dart repository (pub get and pub downgrade with `--no-override`).
 

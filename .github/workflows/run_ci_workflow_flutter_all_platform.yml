@@ -1,6 +1,6 @@
 # Same as run_ci_workflow_flutter_all.yml on ubuntu (pub get, analyze, format,
-# test, build for each channel) but only the platform specific part (vm test)
-# on windows and macos.
+# test, build for each channel) but only the platform specific part (vm test,
+# the builds but the web one) on windows and macos.
 name: Run CI workflow flutter all platform
 on:
   push:

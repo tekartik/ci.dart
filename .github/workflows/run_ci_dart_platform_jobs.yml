@@ -12,10 +12,12 @@
 #     with:
 #       runs-on: windows-latest
 #
-# A single job (pub get then vm test), there is nothing to share with other
-# jobs. No build job: run_ci --build on a dart package only runs webdev build
-# (web, platform independent), add one here once run_ci builds for the
-# desktop.
+# Two independent jobs, each one with its own pub get (nothing to share):
+# - test: vm test.
+# - build: the builds but the web one (run_ci --build --no-web-build, no
+#   webdev activation), the web build (platform independent) is done on
+#   ubuntu. None for now (run_ci only builds for the web), the place for the
+#   desktop builds.
 #
 # A new run of the calling workflow on the same ref cancels the older one.
 name: Run CI dart platform jobs
@@ -64,3 +66,17 @@ jobs:
       - run: dart --version
       - run: dart run dev_build:run_ci@ --pub-get --recursive
       - run: dart run dev_build:run_ci@ --vm-test --no-pub-get --recursive
+
+  build:
+    name: Build (no web)
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ inputs.sdk }}
+      - run: dart --version
+      - run: dart run dev_build:run_ci@ --pub-get --recursive
+      # The web build is done on ubuntu, no webdev needed.
+      - run: dart run dev_build:run_ci@ --build --no-web-build --no-pub-get --recursive

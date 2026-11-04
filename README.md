@@ -11,7 +11,7 @@ of the repository, and remove its older CI workflows (an action based
 
 | Workflow | Runs |
 |----------|------|
-| [`run_ci_workflow_dart_all_platform.yml`](.github/workflows/run_ci_workflow_dart_all_platform.yml) | ubuntu stable, beta and dev: pub get, then analyze, format, test and build as separate jobs ([`run_ci_dart_jobs.yml`](.github/workflows/run_ci_dart_jobs.yml)); windows and macos stable: only the platform specific part, pub get and vm test ([`run_ci_dart_platform_jobs.yml`](.github/workflows/run_ci_dart_platform_jobs.yml)) |
+| [`run_ci_workflow_dart_all_platform.yml`](.github/workflows/run_ci_workflow_dart_all_platform.yml) | ubuntu stable, beta and dev: pub get, then analyze, format, test and build as separate jobs ([`run_ci_dart_jobs.yml`](.github/workflows/run_ci_dart_jobs.yml)); windows and macos stable: only the platform specific part, vm test and the builds but the web one, none for now ([`run_ci_dart_platform_jobs.yml`](.github/workflows/run_ci_dart_platform_jobs.yml)) |
 | [`run_ci_workflow_flutter_analyze.yml`](.github/workflows/run_ci_workflow_flutter_analyze.yml) | analyze after pub get and after pub downgrade, with `--no-override` ([`run_ci_flutter_analyze_jobs.yml`](.github/workflows/run_ci_flutter_analyze_jobs.yml)): the published constraints are checked at both ends (after the downgrade, analyze fails on errors only: `--no-fatal-warnings`), `pubspec_overrides.yaml` files are ignored. The flutter sdk analyzes pure dart packages too |
 
 Both run `dart run dev_build:run_ci@ ... --recursive`, so every package of
@@ -53,7 +53,7 @@ of the repository, and remove its older CI workflows (an action based
 
 | Workflow | Runs |
 |----------|------|
-| [`run_ci_workflow_flutter_all_platform.yml`](.github/workflows/run_ci_workflow_flutter_all_platform.yml) | ubuntu stable and beta: pub get, then analyze, format, test and build (`flutter build web` for the flutter packages) as separate jobs ([`run_ci_flutter_jobs.yml`](.github/workflows/run_ci_flutter_jobs.yml)); windows and macos stable: only the platform specific part, pub get and vm test (`flutter test`, `dart test -p vm` for the pure dart packages) ([`run_ci_flutter_platform_jobs.yml`](.github/workflows/run_ci_flutter_platform_jobs.yml)) |
+| [`run_ci_workflow_flutter_all_platform.yml`](.github/workflows/run_ci_workflow_flutter_all_platform.yml) | ubuntu stable and beta: pub get, then analyze, format, test and build (`flutter build web` for the flutter packages) as separate jobs ([`run_ci_flutter_jobs.yml`](.github/workflows/run_ci_flutter_jobs.yml)); windows and macos stable: only the platform specific part, vm test (`flutter test`, `dart test -p vm` for the pure dart packages) and the builds but the web one, none for now ([`run_ci_flutter_platform_jobs.yml`](.github/workflows/run_ci_flutter_platform_jobs.yml)) |
 | [`run_ci_workflow_flutter_analyze.yml`](.github/workflows/run_ci_workflow_flutter_analyze.yml) | analyze after pub get and after pub downgrade, with `--no-override` ([`run_ci_flutter_analyze_jobs.yml`](.github/workflows/run_ci_flutter_analyze_jobs.yml)), the same file as for a dart repository |
 
 Same as for a dart repository: `dart run dev_build:run_ci@ ... --recursive`
