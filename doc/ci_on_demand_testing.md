@@ -20,7 +20,7 @@ workflows consumer repositories copy).
 - Keep the copy/paste workflows for consumers simple and, for private
   repositories, cheap.
 - Decide whether ci.dart alone is enough as a test bed or whether a separate
-  public test repository is needed (github_actions_dart_prv got too expensive
+  public test repository is needed (the private test repository got too expensive
   and its workflows are disabled).
 
 ## Current state (2026-09-28)
@@ -331,7 +331,7 @@ A. Add a minimal flutter app to ci.dart (`ci_test/flutter_app`, `flutter
    tag, one dispatch tool.
 
 B. A separate public test repository (`tekartik/ci_test.dart`, or move
-   `alextekartik/github_actions_dart_prv` to public): a *consumer* of
+   the private test repository to public): a *consumer* of
    ci.dart, containing a dart package, a flutter app and the copied
    templates as its real workflows. Tests what ci.dart cannot test on
    itself: cross repository `@v1` resolution, `checkout-token`, a template
@@ -341,7 +341,7 @@ B. A separate public test repository (`tekartik/ci_test.dart`, or move
    in `uses:`), push, dispatch, delete the branch. That is "test revision X
    exactly as a consumer would get it".
 
-C. Keep `github_actions_dart_prv` dormant: its workflows back in
+C. Keep the private test repository dormant: its workflows back in
    `.github/workflows` but `workflow_dispatch` only and ubuntu only, so it
    costs nothing until dispatched. It is the only place to test private
    specifics (private git dependencies needing a token, the checkout token).

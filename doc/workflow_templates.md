@@ -68,7 +68,7 @@ stable.
 
 ### `run_ci_workflow_flutter_default.yml` (the private flutter default, 2026-10-29)
 
-A private flutter repository (tekaly/festenaoprv for example) copies the
+A private flutter repository copies the
 ci.dart `run_ci_workflow_flutter_default.yml` as it is: ubuntu stable,
 `run_ci_flutter_jobs.yml` (pub get, analyze, format, test, build as separate
 jobs), a monthly schedule (day 28), a concurrency group cancelling an older

@@ -80,7 +80,7 @@ Examples: [tekartik/app_flutter_utils.dart](https://github.com/tekartik/app_flut
 
 ## Default for a private flutter repository
 
-A private repository (tekaly/festenaoprv for example) copies the single
+A private repository copies the single
 [`run_ci_workflow_flutter_default.yml`](.github/workflows/run_ci_workflow_flutter_default.yml):
 ubuntu stable only, run ci as separate jobs (pub get, analyze, format, test,
 build: [`run_ci_flutter_jobs.yml`](.github/workflows/run_ci_flutter_jobs.yml)),
