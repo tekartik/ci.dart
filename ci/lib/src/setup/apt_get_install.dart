@@ -47,11 +47,11 @@ Future<void> sudoAptGetInstall(List<String> packages) async {
 /// when there is no dpkg (not a Debian based linux, apt-get then fails).
 Future<bool> _isInstalled(String package) async {
   try {
-    var result = await Process.run('dpkg-query', [
-      '-W',
-      r'-f=${Status}',
-      package,
-    ]);
+    var result = await Shell(
+      stdin: const Stream<List<int>>.empty(),
+      verbose: false,
+      throwOnError: false,
+    ).runExecutableArguments('dpkg-query', ['-W', r'-f=${Status}', package]);
     return result.exitCode == 0 &&
         (result.stdout as String).contains('install ok installed');
   } catch (_) {
